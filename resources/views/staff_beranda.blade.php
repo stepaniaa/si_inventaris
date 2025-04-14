@@ -1,10 +1,10 @@
 @extends('layout.staff_main')
-@section('title', 'siinventaris - Daftar Peminjaman') 
+@section('title', 'siinventaris - Beranda') 
 @section('staff_navigasi')
 @section('content')
 
 <div class="card mt-4"> 
-        <div class="card-header">Daftar Peminjaman</div>
+        <div class="card-header">Beranda</div>
         <div class="card-header">Card Body
         <p>Halo, Selamat datang</p>
         </div> 

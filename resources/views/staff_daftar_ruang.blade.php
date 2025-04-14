@@ -1,121 +1,46 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Daftar Ruang</title>
-<style>
-body {
-  font-family: sans-serif;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-th {
-  background-color: #f2f2f2;
-}
-.btn {
-  padding: 4px 8px;
-  border: none;
-  cursor: pointer;
-}
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-.btn-danger {
-  background-color: #f44336;
-  color: white;
-}
-</style>
-</head>
-<body>
+@extends('layout.staff_main')
+@section('title', 'siinventaris - Daftar Ruang') 
+@section('staff_navigasi')
+@section('content')
 
-<h1>Daftar Ruang</h1>
+<div class="card mt-4">
+        <div class="card-header">
+          <a href="/staff_daftar_ruang/s_ruang_formadd" class="btn btn-primary" role="button"><i class="bi bi-plus-square-fill"></i> Ruang </a>
 
-<button>(+) Ruang</button>
+        </div>
+        <div class="card-body">
+        
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Kode Kapel </th>
+                <th scope="col">Nama Kapel</th>
+                <th scope="col">Kapasitas </th>
+                <th scope="col">Fasilitas </th>
+                <th scope="col">Deskripsi </th>
+                <th scope="col">Aksi </th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($rng as $idx => $r)
+                <tr>
+                  <td>{{$r->kode_ruang}}</td>
+                  <td>{{$r->nama_ruang}}</td>
+                  <td>{{$r->kapasitas_ruang}}</td>
+                  <td>{{$r->fasilitas_ruang}}</td>
+                  <td>{{$r->deskripsi_ruang}}</td>
 
-<input type="text" placeholder="Cari">
+                  <td>
+                    <a href="/staff_daftar_ruang/s_ruang_formedit/{{$r->id_ruang}}" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
 
-<table>
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Kode Ruang</th>
-      <th>Nama Ruang</th>
-      <th>Kapasitas</th>
-      <th>Fasilitas</th>
-      <th>Status</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>1</td>
-      <td>Kapel Atas L2</td>
-      <td>Kapel Atas</td>
-      <td>50</td>
-      <td>Gitar, Proyektor, Sound System</td>
-      <td>Tersedia</td>
-      <td>
-        <button class="btn btn-primary">Edit</button>
-        <button class="btn btn-danger">Hapus</button>
-      </td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>
-        <button class="btn btn-primary">Edit</button>
-        <button class="btn btn-danger">Hapus</button>
-      </td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>
-        <button class="btn btn-primary">Edit</button>
-        <button class="btn btn-danger">Hapus</button>
-      </td>
-    </tr>
-    <tr>
-      <td>4</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>
-        <button class="btn btn-primary">Edit</button>
-        <button class="btn btn-danger">Hapus</button>
-      </td>
-    </tr>
-    <tr>
-      <td>5</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>Lorem Ipsum</td>
-      <td>
-        <button class="btn btn-primary">Edit</button>
-        <button class="btn btn-danger">Hapus</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-</body>
-</html>
+                    
+                    <a href="/staff_daftar_ruang/delete_ruang/{{$r->id_ruang}}" class="btn btn-danger" onclick="return confirm('Apakah ada yakin ingin menghapus data ini ?')">
+                      <i class="bi bi-trash-fill"></i></i></a>
+                  </td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+    </div>
+@endsection

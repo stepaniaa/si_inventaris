@@ -45,7 +45,7 @@
         <div class="row vh-100">
             <div class="col-md-3 border">
                 {{-- NAVIGASI --}}
-                @include('layout/peminjam_navigasi')
+                @include('layout/kaunit_navigasi')
             </div>
             <div class="col-md-9">
                   {{--KONTEN DINAMIS--}}

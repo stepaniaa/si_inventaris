@@ -16,16 +16,83 @@ Route::get('/', function () {
 });
 
 //User - Peminjam ------------------------------------------------------------------------------------------
-Route::get('home_user', 'PageController@home_user');
-Route::get('peminjam_home', 'PageController@peminjam_home');
+//Route::get('home_user', 'PageController@home_user');
+Route::get('peminjam_beranda', 'peminjamController@peminjam_beranda');
+Route::get('peminjam_peminjaman_barang', 'peminjamController@peminjam_peminjaman_barang');
+Route::get('peminjam_peminjaman_ruang', 'peminjamController@peminjam_peminjaman_ruang');
+Route::get('peminjam_daftar_riwayat_peminjaman', 'peminjamController@peminjam_daftar_riwayat_peminjaman');
 
 //Staff LPKKSK  ------------------------------------------------------------------------------------------
-Route::get('staff_home', 'PageController@staff_home');
-Route::get('staff_daftar_kategori', 'PageController@staff_daftar_kategori');
-Route::get('staff_daftar_ruang', 'PageController@staff_daftar_ruang');
-Route::get('staff_daftar_barang', 'PageController@staff_daftar_barang');
-Route::get('staff_pengadaan', 'PageController@staff_pengadaan');
-Route::get('staff_perbaikan', 'PageController@staff_perbaikan');
-Route::get('staff_penghapusan', 'PageController@staff_penghapusan');
-Route::get('staff_daftar_peminjaman', 'PageController@staff_daftar_peminjaman');
-Route::get('staff_pengajuan_peminjaman', 'PageController@staff_pengajuan_peminjaman');
+Route::get('staff_beranda', 'staffController@staff_beranda');
+
+// Kategori 
+Route::get('staff_daftar_kategori', 'staffController@staff_daftar_kategori');
+
+            //CRUD - Kategori
+Route::get('/staff_daftar_kategori/s_kategori_formadd', 'staffController@s_kategori_formadd');
+Route::post('/staff_daftar_kategori/save_kategori', 'staffController@save_kategori');
+Route::get('/staff_daftar_kategori/s_kategori_formedit/{id_kategori}', 'staffController@s_kategori_formedit');
+Route::put('/staff_daftar_kategori/update_kategori/{id_kategori}', 'staffController@update_kategori');
+Route::get('/staff_daftar_kategori/delete_kategori/{id_kategori}', 'staffController@delete_kategori');
+
+// Daftar Ruang
+Route::get('staff_daftar_ruang', 'staffController@staff_daftar_ruang');
+Route::get('/staff_daftar_ruang/s_ruang_formadd', 'staffController@s_ruang_formadd');
+Route::post('/staff_daftar_ruang/save_ruang', 'staffController@save_ruang');
+
+Route::get('/staff_daftar_ruang/s_ruang_formedit/{id_ruang}', 'staffController@s_ruang_formedit');
+Route::put('/staff_daftar_ruang/update_ruang/{id_ruang}', 'staffController@update_ruang');
+Route::get('/staff_daftar_ruang/delete_ruang/{id_ruang}', 'staffController@delete_ruang');
+
+//Daftar Perlengkapan
+
+Route::get('staff_daftar_perlengkapan', 'staffController@staff_daftar_perlengkapan');
+Route::get('/staff_daftar_perlengkapan/s_perlengkapan_formadd', 'staffController@s_perlengkapan_formadd');
+Route::post('/staff_daftar_perlengkapan/save_perlengkapan', 'staffController@save_perlengkapan');
+
+Route::get('/staff_daftar_perlengkapan/s_perlengkapan_formedit/{id_perlengkapan}', 'staffController@s_perlengkapan_formedit');
+Route::put('/staff_daftar_perlengkapan/update_perlengkapan/{id_perlengkapan}', 'staffController@update_perlengkapan');
+Route::get('/staff_daftar_perlengkapan/delete_perlengkapan/{id_perlengkapan}', 'staffController@delete_perlengkapan');
+
+//Kelola Pengadaan 
+
+Route::get('staff_usulan_pengadaan', 'staffController@staff_usulan_pengadaan');
+Route::get('/staff_usulan_pengadaan/staff_pengadaan_formadd', 'staffController@staff_pengadaan_formadd');
+Route::post('/staff_usulan_pengadaan/save_pengadaan', 'staffController@save_pengadaan');
+
+Route::get('/staff_usulan_pengadaan/staff_pengadaan_formedit/{id_usulan_pengadaan}', 'staffController@staff_pengadaan_formedit');
+Route::put('/staff_usulan_pengadaan/update_pengadaan/{id_usulan_pengadaan}', 'staffController@update_pengadaan');
+Route::get('/staff_usulan_pengadaan/delete_pengadaan/{id_usulan_pengadaan}', 'staffController@delete_pengadaan');
+
+// Kelola Perbaikan 
+Route::get('staff_usulan_perbaikan', 'staffController@staff_usulan_perbaikan');
+Route::get('/staff_usulan_perbaikan/staff_perbaikan_formadd', 'staffController@staff_perbaikan_formadd');
+Route::post('/staff_usulan_perbaikan/save_perbaikan', 'staffController@save_perbaikan');
+
+Route::get('/staff_usulan_perbaikan/staff_perbaikan_formedit/{id_usulan_perbaikan}', 'staffController@staff_perbaikan_formedit');
+Route::put('/staff_usulan_perbaikan/update_perbaikan/{id_usulan_perbaikan}', 'staffController@update_perbaikan');
+Route::get('/staff_usulan_perbaikan/delete_perbaikan/{id_usulan_perbaikan}', 'staffController@delete_perbaikan');
+
+// Kelola Penghapusan 
+Route::get('staff_usulan_penghapusan', 'staffController@staff_usulan_penghapusan');
+Route::get('/staff_usulan_penghapusan/staff_penghapusan_formadd', 'staffController@staff_penghapusan_formadd');
+Route::post('/staff_usulan_penghapusan/save_penghapusan', 'staffController@save_penghapusan');
+
+Route::get('/staff_usulan_penghapusan/staff_penghapusan_formedit/{id_usulan_penghapusan}', 'staffController@staff_pengadaanpenghapusan_formedit');
+Route::put('/staff_usulan_penghapusan/update_penghapusan/{id_usulan_penghapusan}', 'staffController@update_penghapusan');
+Route::get('/staff_usulan_penghapusan/delete_penghapusan/{id_usulan_penghapusan}', 'staffController@delete_penghapusan');
+
+
+
+
+Route::get('staff_daftar_peminjaman', 'staffController@staff_daftar_peminjaman');
+Route::get('staff_pengajuan_peminjaman', 'staffController@staff_pengajuan_peminjaman');
+
+
+
+//KEPALA UNIT 
+Route::get('kaunit_daftar_kapel', 'kaunitController@kaunit_daftar_kapel');
+Route::get('kaunit_daftar_perlengkapan', 'kaunitController@kaunit_daftar_perlengkapan');
+Route::get('kaunit_validasi_pengadaan', 'kaunitController@kaunit_validasi_pengadaan');
+Route::get('kaunit_validasi_perbaikan', 'kaunitController@kaunit_validasi_perbaikan');
+Route::get('kaunit_validasi_penghapusan', 'kaunitController@kaunit_validasi_penghapusan');
