@@ -3,6 +3,18 @@
 @section('staff_navigasi')
 @section('content')
 
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('danger'))
+    <div class="alert alert-danger">
+        {{ session('danger') }}
+    </div>
+@endif 
+
 <div class="card mt-4">
         <div class="card-header">
           <a href="/staff_daftar_kategori/s_kategori_formadd" class="btn btn-primary" role="button"><i class="bi bi-plus-square-fill"></i> Daftar Kategori </a>

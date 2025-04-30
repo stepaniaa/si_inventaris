@@ -9,42 +9,56 @@
 
             <div class="form-group">
                 <label>Kode Perlengkapan</label>
-                <input type="text" name="kode_perlengkapan" class="form-control" placeholder="Masukkan kode perlengkapan">
+                <input type="text" name="kode_perlengkapan" class="form-control" placeholder="Masukkan kode perlengkapan" required>
             </div>
 
             <div class="form-group">
                 <label>Nama Perlengkapan</label>
-                <input type="text" name="nama_perlengkapan" class="form-control" placeholder="Masukkan nama perlengkapan">
+                <input type="text" name="nama_perlengkapan" class="form-control" placeholder="Masukkan nama perlengkapan" required>
             </div>
 
             <div class="form-group">
                 <label>Kategori Perlengkapan</label>
-                <input type="text" name="id_kategori" class="form-control" placeholder="Masukkan kategori perlengkapan">
+                <select name="id_kategori" class="form-control" required>
+                    <option value="" disabled selected>Pilih kategori perlengkapan</option>
+                    @foreach($kategori as $k)
+                        <option value="{{ $k->id_kategori }}">{{ $k->nama_kategori }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="form-group">
-                <label>Lokasi Perlengkapan</label>
-                <input type="text" name="id_ruang" class="form-control" placeholder="Masukkan lokasi perlengkapan">
+                <label>Lokasi Perlengkapan (Ruang)</label>
+                <select name="id_ruang" class="form-control" required>
+                    <option value="" disabled selected>Pilih lokasi ruang</option>
+                    @foreach($ruang as $r)
+                        <option value="{{ $r->id_ruang }}">{{ $r->nama_ruang }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="form-group">
                 <label>Stok Perlengkapan</label>
-                <input type="text" name="stok_perlengkapan" class="form-control" placeholder="Masukkan stok perlengkapan">
+                <input type="number" name="stok_perlengkapan" class="form-control" placeholder="Masukkan stok perlengkapan" required>
             </div>
 
             <div class="form-group">
                 <label>Harga Satuan Perlengkapan</label>
-                <input type="text" name="harga_satuan_perlengkapan" class="form-control" placeholder="Masukkan harga satuan perlengkapan">
+                <input type="number" step="0.01" name="harga_satuan_perlengkapan" class="form-control" placeholder="Masukkan harga satuan perlengkapan" required>
             </div>
 
             <div class="form-group">
                 <label>Tanggal Beli Perlengkapan</label>
-                <input type="date" name="tanggal_beli_perlengkapan" class="form-control" placeholder="Masukkan tanggal beli perlengkapan">
+                <input type="date" name="tanggal_beli_perlengkapan" class="form-control" required>
             </div>
 
             <div class="form-group">
                 <label>Kondisi Perlengkapan</label>
-                <input type="text" name="kondisi_perlengkapan" class="form-control" placeholder="Masukkan kondisi perlengkapan">
+                <select class="form-control" name="kondisi_perlengkapan" required>
+                    <option value="">Pilih Kondisi</option>
+                    <option value="Baik">Baik</option>
+                    <option value="Rusak">Rusak</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -54,7 +68,7 @@
 
             <div class="form-group">
                 <label>Foto Perlengkapan</label>
-                <input type="image" name="foto_perlengkapan" class="form-control" placeholder="Masukkan tanggal beli perlengkapan">
+                <input type="file" name="foto_perlengkapan" class="form-control" accept="image/*">
             </div>
 
             <div class="form-group mt-4">

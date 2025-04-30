@@ -1,0 +1,99 @@
+body {
+    background-color: #0062cc; /* Warna latar belakang utama */
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif; /* Font default */
+}
+
+#login {
+    height: 100vh; /* Membuat container login memenuhi tinggi viewport */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Pusatkan konten secara vertikal */
+    align-items: center; /* Pusatkan konten secara horizontal */
+}
+
+#login h3.text-center.text-white.pt-5 {
+    color: white;
+    padding-top: 0; /* Karena container sudah di tengah */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px; /* Lebar maksimum container */
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#login-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#login-column {
+    width: 100%;
+    max-width: 450px; /* Lebar kolom login */
+}
+
+#login-box {
+    background-color: #eaeaea; /* Warna kotak login */
+    padding: 30px;
+    border-radius: 10px; /* Sudut membulat */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Efek bayangan tipis */
+}
+
+#login-form h3.text-center.text-info {
+    color: #0062cc; /* Warna judul login form */
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-group label.text-info {
+    color: #0062cc; /* Warna label */
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    border: 1px solid #0062cc; /* Warna border input */
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box; /* Agar padding tidak menambah lebar */
+}
+
+.btn.btn-info.btn-md {
+    background-color: #0062cc;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%; /* Tombol memenuhi lebar */
+    display: block;
+}
+
+.btn.btn-info.btn-md:hover {
+    background-color: #005cb8;
+}
+
+.form-group label[for="remember-me"] {
+    display: inline-block;
+    margin-right: 10px;
+    font-weight: normal;
+}
+
+.invalid-feedback {
+    color: red;
+    display: block;
+    margin-top: 5px;
+    font-size: 0.9em;
+}

@@ -13,7 +13,7 @@
             </div>
             <div class="form-group">
                 <label>Nama Perlengkapan</label>
-                <input type="text" name="nama_perlengkapan_usulan" class="form-control" value="{{$pgd->nama_perlengkapan_usulan}}">
+                <input type="text" name="nama_perlengkapan_pengadaan" class="form-control" value="{{$pgd->nama_perlengkapan_pengadaan}}">
             </div>
             <div class="form-group">
                 <label>Jumlah</label>
@@ -22,6 +22,10 @@
             <div class="form-group">
                 <label>Alasan pengadaan</label>
                 <input type="text" name="alasan_pengadaan" class="form-control" value="{{$pgd->alasan_pengadaan}}">
+            </div>
+            <div class="form-group">
+                <label>Estimasi Harga</label>
+                <input type="number" name="estimasi_harga" class="form-control" value="{{$pgd->estimasi_harga}}">
             </div>
             <div class="form-group">
                 <label>Tanggal saat ini</label>

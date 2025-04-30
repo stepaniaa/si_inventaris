@@ -23,13 +23,11 @@ class Perlengkapan extends Model
         'id_kategori', 
     ];
     
-    public function ruang()
-    {
-        return $this->belongsTo(Ruang::class, 'id_ruang');
-    }
-
-    public function kategori()
-    {
+    public function kategori() {
         return $this->belongsTo(Kategori::class, 'id_kategori');
+    }
+    
+    public function ruang() {
+        return $this->belongsTo(Ruang::class, 'id_ruang');
     }
 }

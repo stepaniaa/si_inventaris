@@ -1,12 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Ruang ; 
 use App\Kategori ; 
 use App\Perlengkapan ; 
 use App\Pengadaan ; 
+use App\Penghapusan ; 
+use App\Perbaikan ; 
+use App\Peminjaman ; 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; 
 
 
 class staffController extends Controller
@@ -33,12 +38,26 @@ class staffController extends Controller
             'nama_kategori'=>$request->nama_kategori, 
         ]);
 
-        return redirect('staff_daftar_kategori');
+        return redirect('staff_daftar_kategori')->with('success', 'Data kategori berhasil ditambahkan.');
     }
 
-    public function s_kategori_formedit($id_kategori) { 
-        $ktg = Kategori::find($id_kategori); 
-        return view('s_kategori_formedit', ['key'=>'staff_daftar_kategori','ktg'=>$ktg]);
+    public function s_kategori_formedit($id_perlengkapan) { 
+        $pkp = Perlengkapan::findOrFail($id_perlengkapan);
+
+    // Pastikan $pkp->tanggal_beli_perlengkapan adalah objek Carbon
+    if ($pkp->tanggal_beli_perlengkapan) {
+        $pkp->tanggal_beli_perlengkapan = Carbon::parse($pkp->tanggal_beli_perlengkapan);
+    }
+
+    $kategori = Kategori::all();
+    $ruang = Ruang::all();
+
+    return view('staff.s_perlengkapan_formedit', [
+        'key' => 'staff_daftar_perlengkapan',
+        'pkp' => $pkp,
+        'ruang' => $ruang,
+        'kategori' => $kategori,
+    ]);
     
     }
 
@@ -48,7 +67,7 @@ class staffController extends Controller
         $ktg->nama_kategori = $request->nama_kategori;
         $ktg->save();
 
-        return redirect('staff_daftar_kategori');
+        return redirect('staff_daftar_kategori')->with('success', 'Data kategori berhasil diubah.');
 
     }
 
@@ -56,7 +75,7 @@ class staffController extends Controller
         $ktg = Kategori::find($id_kategori); 
         $ktg->delete();
 
-        return redirect('staff_daftar_kategori');
+        return redirect('staff_daftar_kategori')->with('danger', 'Data kategori berhasil dihapus.');
  
     }
 
@@ -81,7 +100,7 @@ class staffController extends Controller
             
         ]);
 
-        return redirect('staff_daftar_ruang');
+        return redirect('staff_daftar_ruang')->with('success', 'Data kapel berhasil ditambahkan.');
     }
 
     public function s_ruang_formedit($id_ruang) { 
@@ -97,8 +116,7 @@ class staffController extends Controller
         $rng->deskripsi_ruang = $request->deskripsi_ruang;
         $rng->save();
 
-        return redirect('staff_daftar_ruang');
-
+        return redirect('staff_daftar_ruang')->with('success', 'Data kapel berhasil diubah.');
 
     }
 
@@ -106,8 +124,7 @@ class staffController extends Controller
         $rng = Ruang::find($id_ruang); 
         $rng->delete();
 
-        return redirect('staff_daftar_ruang');
-
+        return redirect('staff_daftar_ruang')->with('danger', 'Data kapel berhasil dihapus.');
     }
 
 // Pengelolaan Perlengkapan 
@@ -116,6 +133,16 @@ class staffController extends Controller
         return view('staff_daftar_perlengkapan', ['key' => 'staff_daftar_perlengkapan','pkp' => $pkp]);
         
     }
+
+    //search 
+    public function search(Request $request){ 
+        $cari = $request->p; 
+        $pkp = Perlengkapan::where('nama_perlengkapan','like','%'.$cari.'%')->paginate(10); 
+        //$mhs = Mahasiswa::where('nama','like','%'.$cari.'%')->orwhere('nim','like','%'.$cari.'%')->paginate(10);
+        $pkp->appends($request->all());
+        return view('staff_daftar_perlengkapan',['key'=>'staff_daftar_perlengkapan','pkp'=> $pkp]);
+    }
+
 
         public function s_perlengkapan_formadd(){ 
             return view('s_perlengkapan_formadd', [
@@ -127,12 +154,15 @@ class staffController extends Controller
         }
 
         public function save_perlengkapan(Request $request){ 
+            $request->validate([
+                'foto_perlengkapan' => 'image|mimes:jpeg,png,jpg|max:2048', // validasi file
+            ]);
+        
             $fotoPath = null;
             if ($request->hasFile('foto_perlengkapan')) {
                 $fotoPath = $request->file('foto_perlengkapan')->store('perlengkapan', 'public');
             }
-    
-            // Simpan data
+        
             Perlengkapan::create([
                 'kode_perlengkapan' => $request->kode_perlengkapan,
                 'nama_perlengkapan' => $request->nama_perlengkapan,
@@ -145,75 +175,81 @@ class staffController extends Controller
                 'id_ruang' => $request->id_ruang,
                 'id_kategori' => $request->id_kategori,
             ]);
-    
-            return redirect('staff_daftar_perlengkapan')->with('pesan', 'Data berhasil ditambah');
+        
+            return redirect('staff_daftar_perlengkapan')->with('success', 'Data perlengkapan berhasil ditambahkan.');
+        }
+        
+
+        public function s_perlengkapan_formedit($id_perlengkapan){
+
+        $pkp = Perlengkapan::findOrFail($id_perlengkapan);
+
+        // Pastikan tanggal_beli_perlengkapan adalah objek Carbon
+        if ($pkp->tanggal_beli_perlengkapan) {
+            $pkp->tanggal_beli_perlengkapan = Carbon::parse($pkp->tanggal_beli_perlengkapan);
         }
 
-        public function s_perlengkapan_formedit($id_perlengkapan) { 
-            $pkp = Perlengkapan::find($id_perlengkapan);
-        
-            return view('s_perlengkapan_formedit', [
-                'key' => 'staff_daftar_perlengkapan',
-                'pkp' => $pkp,
-                'ruang' => Ruang::all(),
-                'kategori' => Kategori::all()
-            ]);
-        }
+        return view('s_perlengkapan_formedit', [
+            'key' => 'staff_daftar_perlengkapan',
+            'pkp' => $pkp,
+            'ruang' => Ruang::all(),
+            'kategori' => Kategori::all()
+        ]);
+    }
 
-        public function update_perlengkapan($id_perlengkapan, Request $request){ 
-            $pkp = Perlengkapan::find($id_perlengkapan);
-        
-            // Upload gambar baru jika ada
-            if ($request->hasFile('foto_perlengkapan')) {
-                // Hapus gambar lama jika ada
-                if ($pkp->foto_perlengkapan) {
-                    Storage::disk('public')->delete($pkp->foto_perlengkapan);
-                }
-                $fotoPath = $request->file('foto_perlengkapan')->store('perlengkapan', 'public');
-                $pkp->foto_perlengkapan = $fotoPath;
-            }
+    public function update_perlengkapan($id_perlengkapan, Request $request)
+    {
+        $request->validate([
+            'foto_perlengkapan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
-             // Update data lainnya
-            $pkp->kode_perlengkapan = $request->kode_perlengkapan;
-            $pkp->nama_perlengkapan = $request->nama_perlengkapan;
-            $pkp->stok_perlengkapan = $request->stok_perlengkapan;
-            $pkp->harga_satuan_perlengkapan = $request->harga_satuan_perlengkapan;
-            $pkp->tanggal_beli_perlengkapan = $request->tanggal_beli_perlengkapan;
-            $pkp->kondisi_perlengkapan = $request->kondisi_perlengkapan;
-            $pkp->deskripsi_perlengkapan = $request->deskripsi_perlengkapan;
-            $pkp->id_ruang = $request->id_ruang;
-            $pkp->id_kategori = $request->id_kategori;
-            $pkp->save();
+        $pkp = Perlengkapan::findOrFail($id_perlengkapan);
 
-            return redirect('staff_daftar_perlengkapan')->with('pesan', 'Data berhasil diupdate');
-            }
-
-        public function delete_perlengkapan($id_perlengkapan){ 
-            $pkp = Perlengkapan::find($id_perlengkapan);
-        
-            // Hapus gambar jika ada
+        if ($request->hasFile('foto_perlengkapan')) {
             if ($pkp->foto_perlengkapan) {
                 Storage::disk('public')->delete($pkp->foto_perlengkapan);
             }
-            
-            $pkp->delete();
-
-            return redirect('staff_daftar_perlengkapan')->with('pesan', 'Data berhasil dihapus');
-
+            $fotoPath = $request->file('foto_perlengkapan')->store('perlengkapan', 'public');
+            $pkp->foto_perlengkapan = $fotoPath;
         }
+
+        $pkp->kode_perlengkapan = $request->kode_perlengkapan;
+        $pkp->nama_perlengkapan = $request->nama_perlengkapan;
+        $pkp->stok_perlengkapan = $request->stok_perlengkapan;
+        $pkp->harga_satuan_perlengkapan = $request->harga_satuan_perlengkapan;
+        $pkp->tanggal_beli_perlengkapan = $request->tanggal_beli_perlengkapan;
+        $pkp->kondisi_perlengkapan = $request->kondisi_perlengkapan;
+        $pkp->deskripsi_perlengkapan = $request->deskripsi_perlengkapan;
+        $pkp->id_ruang = $request->id_ruang;
+        $pkp->id_kategori = $request->id_kategori;
+        $pkp->save();
+
+        return redirect('staff_daftar_perlengkapan')->with('success', 'Data perlengkapan berhasil diubah.');
+    }
+
+    public function delete_perlengkapan($id_perlengkapan)
+    {
+        $pkp = Perlengkapan::findOrFail($id_perlengkapan);
+
+        // Hapus gambar jika ada
+        if ($pkp->foto_perlengkapan) {
+            Storage::disk('public')->delete($pkp->foto_perlengkapan);
+        }
+
+        $pkp->delete();
+
+        return redirect('staff_daftar_perlengkapan')->with('danger', 'Data perlengkapan berhasil dihapus.');
+    }
 
     
 
 
 // NEW  SECTION - Pengelolaan Pengadaan 
 
-    //public function staff_pengajuan_pengadaan() { 
-        //return view('staff_pengajuan_pengadaan',['key'=>'staff_pengajuan_pengadaan']);
-    //}
 
     public function staff_usulan_pengadaan() { 
-        $pgd = Pengadaan::orderby('id_usulan_pengadaan', 'asc'); 
-        return view('staff_usulan_pengadaan',['key'=>'staff_usulan_pengadaan', 'pgd'=>$pgd]);
+        $pgd = Pengadaan::where('id_staff', Auth::id())->orderBy('id_usulan_pengadaan', 'desc')->paginate(5);
+        return view('staff_usulan_pengadaan', ['key' => 'staff_usulan_pengadaan', 'pgd' => $pgd]);
     }
 
     public function staff_pengadaan_formadd(){ 
@@ -222,17 +258,25 @@ class staffController extends Controller
     }
 
     public function save_pengadaan(Request $request){ 
-        Ruang::create([ 
-            'nama_perlengkapan_usulan'=>$request->nama_perlengkapan_usulan,
-            'jumlah_usulan_pengadaan'=>$request->jumlah_usulan_pengadaan, 
-            'alasan_pengadaan'=>$request->alasan_pengadaan, 
-            'tanggal_usulan_pengadaan'=>$request->tanggal_usulan_pengadaan, 
-            //'tanggal_validasi_pengadaan'=>$request->tanggal_validasi_pengadaan, 
-            //'catatan_pengadaan_kaunit'=>$request->catatan_pengadaan_kaunit, 
-            
+        $request->validate([
+            'nama_perlengkapan_pengadaan' => 'required|string|max:255', // Sesuaikan validasi
+            'jumlah_usulan_pengadaan' => 'required|integer|min:1',
+            'alasan_pengadaan' => 'required|string|max:255',
+            'estimasi_harga' => 'required|numeric|min:0',
+            //'tanggal_usulan_pengadaan' => 'required|date',
         ]);
 
-        return redirect('staff_usulan_pengadaan');
+        Pengadaan::create([
+            'id_staff' => Auth::id(), // Menggunakan ID staff yang sedang login
+            'nama_perlengkapan_pengadaan' => $request->nama_perlengkapan_pengadaan, // Sesuaikan nama kolom
+            'jumlah_usulan_pengadaan' => $request->jumlah_usulan_pengadaan,
+            'alasan_pengadaan' => $request->alasan_pengadaan,
+            'estimasi_harga' => $request->estimasi_harga,
+            'tanggal_usulan_pengadaan' => now(),
+            // Status awal bisa diatur di sini jika perlu, atau akan menggunakan default di migration ('diproses')
+        ]);
+
+        return redirect('staff_usulan_pengadaan')->with('success', 'Usulan pengadaan berhasil ditambahkan.'); // Tambahkan pesan sukses
     }
 
     public function staff_pengadaan_formedit($id_usulan_pengadaan) { 
@@ -242,15 +286,16 @@ class staffController extends Controller
 
     public function update_pengadaan($id_usulan_pengadaan, Request $request){ 
         $pgd = Pengadaan::find($id_usulan_pengadaan); 
-        $pgd->nama_perlengkapan_usulan = $request->nama_perlengkapan_usulan;
+        $pgd->nama_perlengkapan_pengadaan = $request->nama_perlengkapan_pengadaan;
         $pgd->jumlah_usulan_pengadaan = $request->jumlah_usulan_pengadaan;
         $pgd->alasan_pengadaan = $request->alasan_pengadaan;
+        $pgd->estimasi_harga = $request->estimasi_harga;
         $pgd->tanggal_usulan_pengadaan = $request->tanggal_usulan_pengadaan;
         //$pgd->tanggal_validasi_pengadaan = $request->tanggal_validasi_pengadaan;
         //$pgd->catatan_pengadaan_kaunit = $request->catatan_pengadaan_kaunit;
         $pgd->save();
 
-        return redirect('staff_usulan_pengadaan');
+        return redirect('staff_usulan_pengadaan')->with('success', 'Usulan pengadaan berhasil diupdate.');;
 
     }
 
@@ -258,42 +303,213 @@ class staffController extends Controller
         $pgd = Pengadaan::find($id_usulan_pengadaan); 
         $pgd->delete();
 
-        return redirect('staff_usulan_pengadaan');
+        return redirect('staff_usulan_pengadaan')->with('danger', 'Usulan pengadaan dihapus');;
     }
     
-    // NEW SECTION - Pengajuan Perbaikan 
+
+//------------------------------------------------------------------------------------------------------
+
+    // Pengelolaan Perbaikan 
 
     public function staff_usulan_perbaikan() { 
-        $prb = Perbaikan::orderby('id_usulan_perbaikan', 'asc'); 
-        return view('staff_usulan_perbaikan',['key'=>'staff_usulan_perbaikan', 'prb'=>$prb]);
+        $prb = Perbaikan::where('id_staff', Auth::id())->orderBy('id_usulan_perbaikan', 'desc')->paginate(10);
+        return view('staff_usulan_perbaikan', ['key' => 'staff_usulan_perbaikan', 'prb' => $prb]);
     }
 
     public function staff_perbaikan_formadd(){ 
-        return view('staff_perbaikan_formadd',['key'=>'staff_usulan_perbaikan']);
+        $perlengkapan = Perlengkapan::all(); 
+        return view('staff_perbaikan_formadd', ['key' => 'staff_usulan_perbaikan', 'perlengkapan' => $perlengkapan]);
 
     }
 
-    // Kelola penghapusan 
+    public function save_perbaikan(Request $request){ 
+        $request->validate([
+            'alasan_perbaikan' => 'required|string|max:50',
+            'estimasi_harga_perbaikan' => 'nullable|numeric|min:0',
+            'foto_perbaikan' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+    
+        $fotoPath = $request->file('foto_perbaikan')->store('public/foto_perbaikan');
+    
+        Perbaikan::create([
+            'id_staff' => Auth::id(),
+            'id_perlengkapan' => $request->id_perlengkapan,
+            //'kode_perlengkapan' => $request->kode_perlengkapan, // Ini penting
+            'alasan_perbaikan' => $request->alasan_perbaikan,
+            'estimasi_harga_perbaikan' => $request->estimasi_harga_perbaikan,
+            'tanggal_usulan_perbaikan' => now(),
+            'foto_perbaikan' => basename($fotoPath),
+        ]);
+    
+        return redirect('staff_usulan_perbaikan')->with('success', 'Usulan perbaikan berhasil ditambahkan.');
+    }
+
+    public function staff_perbaikan_formedit($id_usulan_perbaikan) { 
+        $prb = Perbaikan::find($id_usulan_perbaikan); 
+        return view('staff_perbaikan_formedit', ['key'=>'staff_usulan_perbaikan','prb'=>$prb]);
+    }
+
+    public function update_perbaikan($id_usulan_perbaikan, Request $request){ 
+        $prb = Perbaikan::findOrFail($id_usulan_perbaikan);
+
+    $request->validate([
+        //'kode_perlengkapan' => 'required|string|max:50',
+        'jumlah_usulan_perbaikan' => 'required|integer|min:1',
+        'alasan_perbaikan' => 'required|string|max:50',
+        'estimasi_harga_perbaikan' => 'nullable|numeric|min:0',
+        'tanggal_usulan_perbaikan' => 'required|date',
+        'foto_perbaikan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto sekarang opsional
+        // 'tanggal_persetujuan_perbaikan' => 'nullable|date',
+        // 'catatan_perbaikan_kaunit' => 'nullable|string|max:255',
+    ]);
+
+   // $prb->kode_perlengkapan = $request->kode_perlengkapan;
+    $prb->jumlah_usulan_perbaikan = $request->jumlah_usulan_perbaikan;
+    $prb->alasan_perbaikan = $request->alasan_perbaikan;
+    $prb->estimasi_harga_perbaikan = $request->estimasi_harga_perbaikan;
+    $prb->tanggal_usulan_perbaikan = $request->tanggal_usulan_perbaikan;
+    // $prb->tanggal_persetujuan_perbaikan = $request->tanggal_persetujuan_perbaikan;
+    // $prb->catatan_perbaikan_kaunit = $request->catatan_perbaikan_kaunit;
+
+    // Handle update foto jika ada file yang diunggah
+    if ($request->hasFile('foto_perbaikan')) {
+        // Hapus foto lama jika ada
+        if ($prb->foto_perbaikan) {
+            Storage::delete('public/foto_perbaikan/' . $prb->foto_perbaikan);
+        }
+
+        // Simpan foto baru
+        $fotoPath = $request->file('foto_perbaikan')->store('public/foto_perbaikan');
+        $prb->foto_perbaikan = basename($fotoPath);
+    }
+
+    $prb->save();
+
+    return redirect('staff_usulan_perbaikan')->with('success', 'Usulan perbaikan berhasil diupdate.');
+
+    }
+
+    public function delete_perbaikan($id_usulan_pengadaan){ 
+        $prb = Perbaikan::findOrFail($id_usulan_perbaikan); 
+    $prb->delete();
+
+    return redirect('staff_usulan_perbaikan')->with('danger', 'Usulan perbaikan berhasil dihapus.');
+    }
+
+    
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //NEW SECTION - Pengelolaan Penghapusan
 
     public function staff_usulan_penghapusan() { 
-        $phs = Penghapusan::orderby('id_usulan_penghapusan', 'asc'); 
-        return view('staff_usulan_penghapusan',['key'=>'staff_usulan_penghapusan', 'prb'=>$prb]);
+        $phs = Penghapusan::where('id_staff', Auth::id())->orderBy('id_usulan_penghapusan', 'desc')->paginate(10);
+        return view('staff_usulan_penghapusan', ['key' => 'staff_usulan_penghapusan', 'phs' => $phs]);
     }
 
     public function staff_penghapusan_formadd(){ 
-        return view('staff_penghapusan_formadd',['key'=>'staff_usulan_penghapusan']);
+        $perlengkapan = Perlengkapan::all(); 
+        return view('staff_penghapusan_formadd', ['key' => 'staff_usulan_penghapusan', 'perlengkapan' => $perlengkapan]);
 
     }
 
-    // Pengelolaan Penghapusan
-
-
-    public function staff_daftar_peminjaman() { 
-        return view('staff_daftar_peminjaman',['key'=>'staff_daftar_peminjaman']);
+    public function save_penghapusan(Request $request){ 
+        $request->validate([
+            'alasan_penghapusan' => 'required|string|max:50',
+            'foto_penghapusan' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+    
+        $fotoPath = $request->file('foto_penghapusan')->store('public/foto_penghapusan');
+    
+        Penghapusan::create([
+            'id_staff' => Auth::id(),
+            'id_perlengkapan' => $request->id_perlengkapan,
+            'alasan_penghapusan' => $request->alasan_penghapusan,
+            'tanggal_usulan_penghapusan' => now(),
+            'foto_penghapusan' => basename($fotoPath),
+        ]);
+    
+        return redirect('staff_usulan_penghapusan')->with('success', 'Usulan penghapusan berhasil ditambahkan.');
     }
 
-    public function staff_pengajuan_peminjaman() { 
-        return view('staff_pengajuan_peminjaman',['key'=>'staff_pengajuan_peminjaman']);
+    public function staff_penghapusan_formedit($id_usulan_penghapusan) { 
+        $phs = Penghapusan::find($id_usulan_penghapusan); 
+        return view('staff_penghapusan_formedit', ['key'=>'staff_usulan_penghapusan','phs'=>$phs]);
     }
+
+    public function update_penghapusan($id_usulan_penghapusan, Request $request){ 
+        $phs = Penghapusan::findOrFail($id_usulan_penghapusan);
+
+    $request->validate([
+        'jumlah_usulan_penghapusan' => 'required|integer|min:1',
+        'alasan_penghapusan' => 'required|string|max:50',
+        'tanggal_usulan_penghapusan' => 'required|date',
+        'foto_penghapusan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto sekarang opsional
+    ]);
+
+   // $prb->kode_perlengkapan = $request->kode_perlengkapan;
+    $prb->jumlah_usulan_penghapusan = $request->jumlah_usulan_penghapusan;
+    $prb->alasan_penghapusan = $request->alasan_perbaikan;
+    $prb->tanggal_usulan_penghapusan = $request->tanggal_usulan_penghapusan;
+    // $prb->tanggal_persetujuan_perbaikan = $request->tanggal_persetujuan_perbaikan;
+    // $prb->catatan_perbaikan_kaunit = $request->catatan_perbaikan_kaunit;
+
+    // Handle update foto jika ada file yang diunggah
+    if ($request->hasFile('foto_penghapusan')) {
+        // Hapus foto lama jika ada
+        if ($phs->foto_penghapusan) {
+            Storage::delete('public/foto_penghapusan/' . $prb->foto_penghapusan);
+        }
+
+        // Simpan foto baru
+        $fotoPath = $request->file('foto_penghapusan')->store('public/foto_penghapusan');
+        $phs->foto_penghapusan = basename($fotoPath);
+    }
+
+    $phs->save();
+
+    return redirect('staff_usulan_penghapusan')->with('success', 'Usulan penghapusan berhasil diupdate.');
+
+    }
+
+    public function delete_penghapusan($id_usulan_penghapusan){ 
+        $phs = Penghapusan::findOrFail($id_usulan_penghapusan); 
+        $phs->delete();
+
+    return redirect('staff_usulan_penghapusan')->with('danger', 'Usulan penghapusan berhasil dihapus.');
+    }
+
+
+//------------------------------------------------------------------------------------------------------------
+    //Pengelolaan peminjaman
+    public function staff_daftar_peminjaman()
+    {
+        $peminjamans = Peminjaman::with('ruang') ->orderBy('id_peminjaman', 'desc')->paginate(10);
+        return view('staff_daftar_peminjaman', ['key'=>'staff_daftar_peminjaman','peminjamans' => $peminjamans]);
+    }
+
+    public function form_validasi_peminjaman(Peminjaman $peminjaman)
+    {
+        return view('form_validasi_peminjaman', [
+            'key' => 'form_validasi_peminjaman',
+            'peminjaman' => $peminjaman,
+        ]);
+    }
+
+    public function save_validasi_peminjaman(Request $request, Peminjaman $peminjaman)
+    {
+        $request->validate([
+            'status_peminjaman' => 'required|in:diterima,ditolak,selesai',
+        ]);
+
+        $peminjaman->update([
+            'status_peminjaman' => $request->status_peminjaman,
+        ]);
+
+        return redirect('staff_daftar_peminjaman')->with('success', 'Data berhasil terupdate');
+    }
+
+
+    
 
 }

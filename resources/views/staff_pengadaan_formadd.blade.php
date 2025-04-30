@@ -9,7 +9,7 @@
 
             <div class="form-group">
                 <label>Nama Perlengkapan</label>
-                <input type="text" name="nama_perlengkapan_usulan" class="form-control" placeholder="Masukkan perlengkapan yang anda usulkan">
+                <input type="text" name="nama_perlengkapan_pengadaan" class="form-control" placeholder="Masukkan perlengkapan yang anda usulkan">
             </div>
 
             <div class="form-group">
@@ -23,9 +23,14 @@
             </div>
 
             <div class="form-group">
+                <label>Estimasi Harga</label>
+                <input type="number" name="estimasi_harga" class="form-control" placeholder="Masukkan estimasi harga">
+            </div>
+
+            <!--<div class="form-group">
                 <label>Tanggal pengusulan</label>
                 <input type="datetime-local" name="tanggal_usulan_pengadaan" class="form-control" placeholder="Masukkan tanggal saat ini">
-            </div>
+            </div>-->
 
             <div class="form-group mt-4">
                 <button type="submit" role="button" class="btn btn-primary">Submit</button>
