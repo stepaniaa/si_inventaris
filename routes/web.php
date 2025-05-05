@@ -24,6 +24,8 @@ Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapa
 Route::get('peminjaman_ruang', 'peminjamController@peminjaman_ruang');
 Route::get('/peminjaman_ruang/peminjaman_ruang_formadd/{id_ruang}', 'peminjamController@peminjaman_ruang_formadd');
 Route::post('/peminjaman_ruang/save_peminjaman_ruang', 'peminjamController@save_peminjaman_ruang');
+Route::get('/peminjaman_ruang/detail_peminjaman_ruang/{id_ruang}', 'peminjamController@detail_peminjaman_ruang');
+
 
 //Peminjaman perlengkapan 
 Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapan');
@@ -99,9 +101,9 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::get('/staff_usulan_penghapusan/delete_penghapusan/{id_usulan_penghapusan}', 'staffController@delete_penghapusan');
 
     //Approval Peminjaman 
-    Route::get('staff_daftar_peminjaman', 'staffController@staff_daftar_peminjaman');
-    Route::get('/staff_daftar_peminjaman/form_validasi_peminjaman/{peminjaman}', 'staffController@form_validasi_peminjaman');
-    Route::put('/staff_daftar_peminjaman/save_validasi_peminjaman/{peminjaman}', 'staffController@save_validasi_peminjaman');
+    Route::get('staff_peminjaman_ruang', 'staffController@staff_peminjaman_ruang');
+    Route::get('/staff_peminjaman_ruang/form_validasi_peminjaman_ruang/{peminjaman}', 'staffController@form_validasi_peminjaman_ruang');
+    Route::put('/staff_peminjaman_ruang/save_validasi_peminjaman_ruang/{peminjaman}', 'staffController@save_validasi_peminjaman_ruang');
 });
 
 

@@ -11,5 +11,5 @@
     <a class="nav-link {{$key=='staff_usulan_penghapusan'?'active':''}}" href="/staff_usulan_penghapusan">Pengajuan Penghapusan Barang</a>
 
     <h6 class="nav-header mt-2">Peminjaman</h6>
-    <a class="nav-link {{$key=='staff_daftar_peminjaman'?'active':''}}" href="/staff_daftar_peminjaman">Validasi Peminjaman Ruang</a>
+    <a class="nav-link {{$key=='staff_peminjaman_ruang'?'active':''}}" href="/staff_peminjaman_ruang">Validasi Peminjaman Ruang</a>
 </div>

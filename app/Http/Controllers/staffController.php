@@ -9,9 +9,12 @@ use App\Perlengkapan ;
 use App\Pengadaan ; 
 use App\Penghapusan ; 
 use App\Perbaikan ; 
-use App\Peminjaman ; 
+use App\PeminjamanRuang ; 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SlipPeminjamanRuangDisetujui;
+use Illuminate\Support\Facades\Log;
 
 
 class staffController extends Controller
@@ -482,32 +485,44 @@ class staffController extends Controller
 
 //------------------------------------------------------------------------------------------------------------
     //Pengelolaan peminjaman
-    public function staff_daftar_peminjaman()
+    public function staff_peminjaman_ruang()
     {
-        $peminjamans = Peminjaman::with('ruang') ->orderBy('id_peminjaman', 'desc')->paginate(10);
-        return view('staff_daftar_peminjaman', ['key'=>'staff_daftar_peminjaman','peminjamans' => $peminjamans]);
+        $peminjamans = PeminjamanRuang::with('ruang')->orderBy('id_peminjaman_ruang', 'desc')->paginate(10);
+        return view('staff_peminjaman_ruang', [
+            'key' => 'staff_peminjaman_ruang',
+            'peminjamans' => $peminjamans
+        ]);
     }
 
-    public function form_validasi_peminjaman(Peminjaman $peminjaman)
+    public function form_validasi_peminjaman_ruang(PeminjamanRuang $peminjaman)
     {
-        return view('form_validasi_peminjaman', [
-            'key' => 'form_validasi_peminjaman',
+        return view('form_validasi_peminjaman_ruang', [
+            'key' => 'form_validasi_peminjaman_ruang',
             'peminjaman' => $peminjaman,
         ]);
     }
 
-    public function save_validasi_peminjaman(Request $request, Peminjaman $peminjaman)
-    {
-        $request->validate([
-            'status_peminjaman' => 'required|in:diterima,ditolak,selesai',
-        ]);
+    public function save_validasi_peminjaman_ruang(Request $request, PeminjamanRuang $peminjaman)
+{
+    $request->validate([
+        'status' => 'required|in:disetujui,ditolak,selesai',
+        'catatan_staff' => 'nullable|string|max:1000',
+    ]);
 
-        $peminjaman->update([
-            'status_peminjaman' => $request->status_peminjaman,
-        ]);
+    $peminjaman->update([
+        'status' => $request->status,
+        'catatan_staff' => $request->catatan_staff,
+    ]);
 
-        return redirect('staff_daftar_peminjaman')->with('success', 'Data berhasil terupdate');
+    try {
+        Mail::to($peminjaman->email)->send(new SlipPeminjamanRuangDisetujui($peminjaman));
+    } catch (\Exception $e) {
+        Log::error('Gagal kirim email: ' . $e->getMessage());
+        return redirect('staff_peminjaman_ruang')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
     }
+
+    return redirect('staff_peminjaman_ruang')->with('success', 'Validasi peminjaman berhasil disimpan dan email terkirim.');
+}
 
 
     
