@@ -26,11 +26,13 @@ Route::get('/peminjaman_ruang/peminjaman_ruang_formadd/{id_ruang}', 'peminjamCon
 Route::post('/peminjaman_ruang/save_peminjaman_ruang', 'peminjamController@save_peminjaman_ruang');
 Route::get('/peminjaman_ruang/detail_peminjaman_ruang/{id_ruang}', 'peminjamController@detail_peminjaman_ruang');
 
-
-//Peminjaman perlengkapan 
+//peminjaman perlengkapan 
 Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapan');
-Route::get('/peminjaman_perlengkapan/peminjaman_perlengkapan_formadd/{id_perlengkapan}', 'peminjamController@peminjaman_perlengkapan_formadd');
+Route::post('/peminjaman_perlengkapan/kirimKeFormPeminjaman', 'peminjamController@kirimKeFormPeminjaman');
+Route::get('/peminjaman_perlengkapan/peminjaman_perlengkapan_formadd', 'peminjamController@peminjaman_perlengkapan_formadd');
 Route::post('/peminjaman_perlengkapan/save_peminjaman_perlengkapan', 'peminjamController@save_peminjaman_perlengkapan');
+Route::get('/peminjaman_perlengkapan/detail_peminjaman_perlengkapan/{id_perlengkapan}', 'peminjamController@detail_peminjaman_perlengkapan');
+
 
 Route::get('peminjam_daftar_riwayat_peminjaman', 'peminjamController@peminjam_daftar_riwayat_peminjaman');
 
