@@ -65,7 +65,11 @@
                 <td>{{ ucfirst($peminjaman->status) }}</td>
                 <td>{{ $peminjaman->catatan_staff ?? '-' }}</td>
                 <td>
-                <a href="/staff_peminjaman_ruang/form_validasi_peminjaman_ruang/{{ $peminjaman->id_peminjaman_ruang }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
+                @if ($peminjaman->status === 'diproses')
+                        <a href="/staff_peminjaman_ruang/form_validasi_peminjaman_ruang/{{ $peminjaman->id_peminjaman_ruang }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
+                    @else
+                        <button class="btn btn-secondary btn-sm" disabled>Sudah Divalidasi</button>
+                    @endif
                 </td>
             </tr>
             @endforeach

@@ -106,6 +106,22 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::get('staff_peminjaman_ruang', 'staffController@staff_peminjaman_ruang');
     Route::get('/staff_peminjaman_ruang/form_validasi_peminjaman_ruang/{peminjaman}', 'staffController@form_validasi_peminjaman_ruang');
     Route::put('/staff_peminjaman_ruang/save_validasi_peminjaman_ruang/{peminjaman}', 'staffController@save_validasi_peminjaman_ruang');
+
+    //Approval Perlengkapan
+    Route::get('staff_peminjaman_perlengkapan', 'staffController@staff_peminjaman_perlengkapan');
+    Route::get('/staff_peminjaman_perlengkapan/form_validasi_peminjaman_perlengkapan/{peminjaman}', 'staffController@form_validasi_peminjaman_perlengkapan');
+    Route::put('/staff_peminjaman_perlengkapan/save_validasi_peminjaman_perlengkapan/{peminjaman}', 'staffController@save_validasi_peminjaman_perlengkapan');
+
+    //Pengembalian Ruang 
+    Route::get('staff_pengembalian_ruang', 'staffController@staff_pengembalian_ruang');
+    Route::get('/staff_pengembalian_ruang/form_pengembalian_ruang/{peminjaman}', 'staffController@form_pengembalian_ruang');
+    Route::put('/staff_pengembalian_ruang/save_pengembalian_ruang/{peminjaman}', 'staffController@save_pengembalian_ruang');
+
+    Route::get('/staff_pengembalian_ruang/form_pengembalian_gladi/{peminjaman}', 'staffController@form_pengembalian_gladi');
+    Route::put('/staff_pengembalian_ruang/save_pengembalian_gladi/{peminjaman}', 'staffController@save_pengembalian_gladi');
+
+    //Pengembalian Perlengkapan
+    Route::get('/staff_pengembalian_perlengkapan', 'staffController@staff_pengembalian_perlengkapan');
 });
 
 

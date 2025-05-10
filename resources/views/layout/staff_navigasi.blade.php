@@ -12,4 +12,9 @@
 
     <h6 class="nav-header mt-2">Peminjaman</h6>
     <a class="nav-link {{$key=='staff_peminjaman_ruang'?'active':''}}" href="/staff_peminjaman_ruang">Validasi Peminjaman Ruang</a>
+    <a class="nav-link {{$key=='staff_peminjaman_perlengkapan'?'active':''}}" href="/staff_peminjaman_perlengkapan">Validasi Peminjaman Perlengkapan</a>
+
+    <h6 class="nav-header mt-2">Pengembalian</h6>
+    <a class="nav-link {{$key=='staff_pengembalian_ruang'?'active':''}}" href="/staff_pengembalian_ruang">Daftar Pengembalian Ruang</a>
+    <a class="nav-link {{$key=='staff_pengembalian_perlengkapan'?'active':''}}" href="/staff_pengembalian_perlengkapan">Daftar pengembalian Perlengkapan</a>
 </div>

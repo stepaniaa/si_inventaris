@@ -30,4 +30,10 @@ class Perlengkapan extends Model
     public function ruang() {
         return $this->belongsTo(Ruang::class, 'id_ruang');
     }
+
+    public function peminjamanPkp()
+    {
+        return $this->belongsToMany(PeminjamanPkp::class, 'peminjaman_pkp_perlengkapan', 'id_perlengkapan', 'id_peminjaman_pkp')
+                    ->withPivot(['jumlah_pk', 'kondisi_awal_pk', 'kondisi_akhir_pk']);
+    }
 }

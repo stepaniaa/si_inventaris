@@ -10,10 +10,12 @@ use App\Pengadaan ;
 use App\Penghapusan ; 
 use App\Perbaikan ; 
 use App\PeminjamanRuang ; 
+use App\PeminjamanPkp ; 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SlipPeminjamanRuangDisetujui;
+use App\Mail\SlipPeminjamanPerlengkapanDisetujui;
 use Illuminate\Support\Facades\Log;
 
 
@@ -509,9 +511,23 @@ class staffController extends Controller
         'catatan_staff' => 'nullable|string|max:1000',
     ]);
 
+    if ($request->status === 'disetujui') {
+        $bentrokan = PeminjamanRuang::overlapping(
+            $peminjaman->id_ruang,
+            $peminjaman->tanggal_mulai,
+            $peminjaman->tanggal_selesai,
+            $peminjaman->id_peminjaman_ruang // Exclude peminjaman saat ini
+        )->where('status', 'disetujui')->exists(); // Cari semua peminjaman yang sudah disetujui
+
+        if ($bentrokan) {
+            return redirect()->back()->withErrors(['bentrokan' => 'Peringatan! Peminjaman ini memiliki bentrokan jadwal dengan peminjaman lain yang sudah disetujui. Harap periksa kembali.']);
+        }
+    }
+
     $peminjaman->update([
         'status' => $request->status,
         'catatan_staff' => $request->catatan_staff,
+        'id_pj_peminjaman' =>  Auth::id(), // bisa juga pakai ->id atau ->email
     ]);
 
     try {
@@ -522,6 +538,151 @@ class staffController extends Controller
     }
 
     return redirect('staff_peminjaman_ruang')->with('success', 'Validasi peminjaman berhasil disimpan dan email terkirim.');
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Approval Peminjaman Perlengkapan 
+public function staff_peminjaman_perlengkapan()
+{
+    $peminjamans = PeminjamanPerlengkapan::with('perlengkapan')->orderBy('id_peminjaman_perlengkapan', 'desc')->paginate(10);
+
+    return view('staff_peminjaman_perlengkapan', [
+        'key' => 'staff_peminjaman_perlengkapan',
+        'peminjamans' => $peminjamans
+    ]);
+}
+
+public function form_validasi_peminjaman_perlengkapan(PeminjamanPerlengkapan $peminjaman)
+{
+    return view('form_validasi_peminjaman_perlengkapan', [
+        'key' => 'form_validasi_peminjaman_perlengkapan',
+        'peminjaman' => $peminjaman,
+    ]);
+}
+
+public function save_validasi_peminjaman_perlengkapan(Request $request, PeminjamanPerlengkapan $peminjaman)
+{
+    $request->validate([
+        'status_pk' => 'required|in:disetujui,ditolak,selesai',
+        'catatan_staff_pk' => 'nullable|string|max:1000',
+    ]);
+
+    $peminjaman->update([
+        'status_pk' => $request->status_pk,
+        'catatan_staff_pk' => $request->catatan_staff_pk,
+    ]);
+
+    try {
+        Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
+    } catch (\Exception $e) {
+        Log::error('Gagal kirim email: ' . $e->getMessage());
+        return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
+    }
+
+    return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+}
+
+public function staff_pengembalian_ruang()
+{
+    $ruangBelum = PeminjamanRuang::with('ruang')
+        ->where('status', 'disetujui')
+        ->whereNull('tanggal_pengembalian')
+        ->get()
+        ->map(function ($item) {
+            $item->jenis = 'peminjaman';
+            $item->status_pengembalian = 'Belum Dikembalikan';
+            return $item;
+        });
+
+    // Belum dikembalikan - Gladi
+    $gladiBelum = PeminjamanRuang::with('ruang')
+        ->where('butuh_gladi', true)
+        ->where('status_gladi', 'belum')
+        ->whereNull('pengembalian_gladi_aktual')
+        ->get()
+        ->map(function ($item) {
+            $item->jenis = 'gladi';
+            $item->status_pengembalian = 'Belum Dikembalikan';
+            return $item;
+        });
+
+    // Sudah dikembalikan - Ruang
+    $ruangSelesai = PeminjamanRuang::with('ruang', 'pjPengembalian')
+        ->whereNotNull('tanggal_pengembalian')
+        ->get()
+        ->map(function ($item) {
+            $item->jenis = 'peminjaman';
+            $item->status_pengembalian = 'Dikembalikan';
+            return $item;
+        });
+
+    // Sudah dikembalikan - Gladi
+    $gladiSelesai = PeminjamanRuang::with('ruang', 'pjPengembalian')
+        ->where('butuh_gladi', true)
+        ->where('status_gladi', 'selesai')
+        ->whereNotNull('pengembalian_gladi_aktual')
+        ->get()
+        ->map(function ($item) {
+            $item->jenis = 'gladi';
+            $item->status_pengembalian = 'Dikembalikan';
+            return $item;
+        });
+
+    return view('staff_pengembalian_ruang', [
+        'belum_dikembalikan' => $ruangBelum->merge($gladiBelum),
+        'sudah_dikembalikan' => $ruangSelesai->merge($gladiSelesai),
+         'key' => 'pengembalian'
+    ]);
+}
+
+public function form_pengembalian_ruang(PeminjamanRuang $peminjaman)
+{
+    return view('form_pengembalian_ruang', [
+        'key' => 'form_pengembalian_ruang',
+        'peminjaman' => $peminjaman,
+    ]);
+}
+
+public function form_pengembalian_gladi(PeminjamanRuang $peminjaman)
+{
+    return view('form_pengembalian_gladi', [
+        'key' => 'form_pengembalian_gladi',
+        'peminjaman' => $peminjaman,
+    ]);
+}
+
+public function save_pengembalian_ruang(Request $request, PeminjamanRuang $peminjaman)
+{
+    $request->validate([
+        'tanggal_pengembalian' => 'required|date',
+        'catatan_pengembalian' => 'nullable|string|max:1000',
+    ]);
+
+    $peminjaman->update([
+        'tanggal_pengembalian' => $request->tanggal_pengembalian,
+        'catatan_pengembalian' => $request->catatan_pengembalian,
+        'status' => 'selesai',
+        'id_pj_pengembalian' =>  Auth::id(), // bisa juga pakai ->id atau ->email
+    ]);
+
+    return redirect('staff_pengembalian_ruang')->with('success', 'Pengembalian ruang berhasil dicatat.');
+}
+
+public function save_pengembalian_gladi(Request $request, $id_peminjaman_ruang)
+{
+    $request->validate([
+        'pengembalian_gladi_aktual' => 'required|date',
+    ]);
+
+    $peminjaman = PeminjamanRuang::findOrFail($id_peminjaman_ruang);
+    $peminjaman->pengembalian_gladi_aktual = $request->pengembalian_gladi_aktual;
+    $peminjaman->status_gladi = 'selesai';
+    $peminjaman->id_pj_pengembalian = Auth::id();
+    
+    $peminjaman->save();
+
+    return redirect('staff_pengembalian_ruang')->with('success', 'Pengembalian gladi berhasil disimpan.');
 }
 
 

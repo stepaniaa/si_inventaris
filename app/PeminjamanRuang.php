@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class PeminjamanRuang extends Model
 {
@@ -51,5 +52,32 @@ class PeminjamanRuang extends Model
     public function pjPengembalian()
     {
         return $this->belongsTo(User::class, 'id_pj_pengembalian', 'id');
+    }
+
+    /**
+     * Scope a query to only include peminjaman yang memiliki jadwal tumpang tindih.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  int  $ruangId
+     * @param  string  $tanggalMulai YYYY-MM-DD HH:MM:SS
+     * @param  string  $tanggalSelesai YYYY-MM-DD HH:MM:SS
+     * @param  int|null  $excludeId ID peminjaman yang ingin dikecualikan
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOverlapping(Builder $query, $ruangId, $tanggalMulai, $tanggalSelesai, $excludeId = null)
+    {
+        $query->where('id_ruang', $ruangId)
+              ->where(function ($q) use ($tanggalMulai, $tanggalSelesai) {
+                  $q->where(function ($q2) use ($tanggalMulai, $tanggalSelesai) {
+                      $q2->where('tanggal_mulai', '<', $tanggalSelesai)
+                         ->where('tanggal_selesai', '>', $tanggalMulai);
+                  });
+              });
+
+        if ($excludeId) {
+            $query->where('id_peminjaman_ruang', '!=', $excludeId);
+        }
+
+        return $query;
     }
 }

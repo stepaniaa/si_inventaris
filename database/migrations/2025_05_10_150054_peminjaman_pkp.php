@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class PeminjamanPerlengkapan extends Migration
+class PeminjamanPkp extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class PeminjamanPerlengkapan extends Migration
      */
     public function up()
     {
-        Schema::create('peminjaman_perlengkapam', function (Blueprint $table) {
-            $table->bigIncrements('id_peminjaman_perlengkapan')->autoIncrement();
+      Schema::create('peminjaman_pkp', function (Blueprint $table) {
+            $table->bigIncrements('id_peminjaman_pkp')->autoIncrement();
 
             // Informasi peminjam
             $table->string('nomor_induk_pk');
@@ -27,7 +27,7 @@ class PeminjamanPerlengkapan extends Migration
             // Informasi kegiatan
             $table->string('nama_kegiatan_pk');
             $table->string('keterangan_kegiatan_pk');
-            $table->unsignedBigInteger('id_perlengkapan');
+            //$table->unsignedBigInteger('id_perlengkapan');
             $table->datetime('tanggal_mulai_pk');
             $table->datetime('tanggal_selesai_pk');
 
@@ -57,10 +57,11 @@ class PeminjamanPerlengkapan extends Migration
             $table->timestamps();
 
             // Relasi ke tabel ruang
-            $table->foreign('id_perlengkapan')->references('id_perlengkapan')->on('perlengkapan')->onDelete('cascade');
+           // $table->foreign('id_perlengkapan')->references('id_perlengkapan')->on('perlengkapan')->onDelete('cascade');
             $table->foreign('id_pj_peminjaman_pk')->references('id')->on('users')->onDelete('set null');
             $table->foreign('id_pj_pengembalian_pk')->references('id')->on('users')->onDelete('set null');
         });
+
     }
 
     /**
