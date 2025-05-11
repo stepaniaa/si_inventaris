@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\SlipPeminjamanRuangDisetujui;
 use App\Mail\SlipPeminjamanPerlengkapanDisetujui;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB; // Tambahkan baris ini untuk mengimpor kelas DB
 
 
 class staffController extends Controller
@@ -545,7 +546,7 @@ class staffController extends Controller
 //Approval Peminjaman Perlengkapan 
 public function staff_peminjaman_perlengkapan()
 {
-    $peminjamans = PeminjamanPerlengkapan::with('perlengkapan')->orderBy('id_peminjaman_perlengkapan', 'desc')->paginate(10);
+      $peminjamans = PeminjamanPkp::with('perlengkapan')->orderBy('id_peminjaman_pkp', 'desc')->paginate(10);
 
     return view('staff_peminjaman_perlengkapan', [
         'key' => 'staff_peminjaman_perlengkapan',
@@ -553,7 +554,7 @@ public function staff_peminjaman_perlengkapan()
     ]);
 }
 
-public function form_validasi_peminjaman_perlengkapan(PeminjamanPerlengkapan $peminjaman)
+public function form_validasi_peminjaman_perlengkapan(PeminjamanPkp $peminjaman)
 {
     return view('form_validasi_peminjaman_perlengkapan', [
         'key' => 'form_validasi_peminjaman_perlengkapan',
@@ -561,26 +562,49 @@ public function form_validasi_peminjaman_perlengkapan(PeminjamanPerlengkapan $pe
     ]);
 }
 
-public function save_validasi_peminjaman_perlengkapan(Request $request, PeminjamanPerlengkapan $peminjaman)
+public function save_validasi_peminjaman_perlengkapan(Request $request, PeminjamanPkp $peminjaman)
 {
-    $request->validate([
+     $request->validate([
         'status_pk' => 'required|in:disetujui,ditolak,selesai',
-        'catatan_staff_pk' => 'nullable|string|max:1000',
-    ]);
-
-    $peminjaman->update([
-        'status_pk' => $request->status_pk,
-        'catatan_staff_pk' => $request->catatan_staff_pk,
+        'catatan_staff' => 'nullable|string|max:1000',
     ]);
 
     try {
-        Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
-    } catch (\Exception $e) {
-        Log::error('Gagal kirim email: ' . $e->getMessage());
-        return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
-    }
+        DB::beginTransaction();
 
-    return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+        $peminjaman->update([
+            'status_pk' => $request->status_pk,
+            'catatan_peminjaman_pk' => $request->catatan_peminjaman_pk,
+            'id_pj_pengembalian_pk' => Auth::id(),
+            'status_gladi_pk' => $peminjaman->butuh_gladi_pk
+                ? ($request->status_pk === 'disetujui' ? 'belum' : 'ditolak')
+                : 'tidak_ada_gladi',
+        ]);
+
+        // Jika ditolak, kembalikan stok
+        if ($request->status_pk === 'ditolak') {
+            foreach ($peminjaman->perlengkapan as $item) {
+                $item->stok_perlengkapan += 1;
+                $item->save();
+            }
+        }
+
+        DB::commit();
+
+        try {
+            Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
+        } catch (\Exception $e) {
+            Log::error('Gagal kirim email: ' . $e->getMessage());
+            return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
+        }
+
+        return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error validasi peminjaman perlengkapan: ' . $e->getMessage());
+        return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat memproses.']);
+    }
 }
 
 public function staff_pengembalian_ruang()

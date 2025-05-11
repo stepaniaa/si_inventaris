@@ -49,6 +49,7 @@ class peminjamController extends Controller
     
         return view('peminjaman_ruang', compact('ruang', 'jadwal'));
     }
+    
     public function peminjaman_ruang_formadd($id_ruang)
     {
         $ruang = Ruang::findOrFail($id_ruang);
@@ -79,6 +80,19 @@ class peminjamController extends Controller
             'status' => 'nullable|string',
             'surat_peminjaman' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // <--- validasi file
         ]);
+
+        $bentrok_jadwal = PeminjamanRuang::where('id_ruang', $request->id_ruang)
+        ->where('status', 'Disetujui') // Hanya cek peminjaman yang disetujui
+        ->where(function ($query) use ($request) {
+            $query->where('tanggal_mulai', '<', $request->tanggal_selesai)
+                  ->where('tanggal_selesai', '>', $request->tanggal_mulai);
+        })
+        ->exists();
+
+    if ($bentrok_jadwal) {
+        return redirect()->back()->withErrors(['tanggal_mulai' => 'Ruang sudah dipesan pada tanggal tersebut.'])->withInput();
+    }
+
 
         if ($request->butuh_gladi) {
             if (!$request->tanggal_gladi || !$request->tanggal_pengembalian_gladi) {
@@ -170,7 +184,8 @@ class peminjamController extends Controller
 
         $peminjamanDisetujui = PeminjamanPkp::where('status_pk', 'disetujui')->get();
 
-        $jadwal = [];
+        $peminjamanPerKelompok = [];
+
 
         foreach ($peminjamanDisetujui as $p) {
             // Perbaikan: Iterasi melalui perlengkapan yang terkait dengan peminjaman
@@ -200,7 +215,7 @@ class peminjamController extends Controller
 
         usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_pk']) - strtotime($b['tanggal_pk']));
 
-        return view('peminjaman_perlengkapan', compact('perlengkapan', 'jadwal'));
+        return view('peminjaman_perlengkapan', compact('perlengkapan', 'peminjamanPerKelompok'));
     }
 
     public function peminjaman_perlengkapan_formadd()
@@ -240,6 +255,39 @@ class peminjamController extends Controller
             Log::error('Validasi gagal: ' . json_encode($validator->errors()->all()));
             return redirect()->back()->withErrors($validator)->withInput();
         }
+
+        // Lakukan validasi bentrok jadwal untuk setiap perlengkapan yang dipilih
+    foreach ($request->id_perlengkapan as $idPerlengkapan) {
+    $bentrok_jadwal = PeminjamanPkp::whereHas('perlengkapan', function ($query) use ($idPerlengkapan) {
+        $query->where('perlengkapan.id_perlengkapan', $idPerlengkapan); // Tambahkan nama tabel 'perlengkapan'
+    })
+    ->where('status_pk', 'Disetujui') // Hanya cek peminjaman yang disetujui
+    ->where(function ($query) use ($request) {
+        $query->where('tanggal_mulai_pk', '<', $request->tanggal_selesai_pk)
+              ->where('tanggal_selesai_pk', '>', $request->tanggal_mulai_pk);
+    })
+    ->exists();
+
+    if ($bentrok_jadwal) {
+        $perlengkapan = Perlengkapan::findOrFail($idPerlengkapan);
+        return redirect()->back()->withErrors(['id_perlengkapan' => 'Perlengkapan "' . $perlengkapan->nama_perlengkapan . '" sudah dipesan pada tanggal tersebut.'])->withInput();
+    }
+    }
+    ////
+    if ($request->butuh_gladi_pk) {
+        if (!$request->tanggal_gladi_pk || !$request->tanggal_selesai_gladi_pk) {
+            return back()->withErrors([
+                'tanggal_gladi_pk' => 'Tanggal gladi dan selesai gladi wajib diisi jika butuh gladi.'
+            ])->withInput();
+        }
+
+        if ($request->tanggal_selesai_gladi_pk < $request->tanggal_gladi_pk) {
+            return back()->withErrors([
+                'tanggal_selesai_gladi_pk' => 'Tanggal selesai gladi harus setelah tanggal mulai gladi.'
+            ])->withInput();
+        }
+    }
+
 
         $status_gladi = $request->butuh_gladi_pk
             ? 'belum'
@@ -324,4 +372,45 @@ class peminjamController extends Controller
 
         return redirect('/peminjaman_perlengkapan/peminjaman_perlengkapan_formadd');
     }
+
+    public function detail_peminjaman_perlengkapan($id_peminjaman_pkp)
+{
+    // Ambil semua peminjaman yang disetujui
+    $peminjamanDisetujui = PeminjamanPkp::where('status_pk', 'disetujui')->get();
+
+    $peminjamanPerKelompok = [];
+
+    foreach ($peminjamanDisetujui as $peminjaman) {
+        $perlengkapanDipinjam = $peminjaman->perlengkapan->pluck('nama_perlengkapan')->toArray();
+
+        $peminjamanPerKelompok[] = [
+            'id_peminjaman_pkp' => $peminjaman->id_peminjaman_pkp,
+            'nama_peminjam_pk' => $peminjaman->nama_peminjam_pk,
+            'tanggal_mulai_pk' => $peminjaman->tanggal_mulai_pk,
+            'tanggal_selesai_pk' => $peminjaman->tanggal_selesai_pk,
+            'nama_kegiatan_pk' => $peminjaman->nama_kegiatan_pk,
+            'perlengkapan' => $perlengkapanDipinjam,
+        ];
+
+        // Tambahkan juga informasi gladi jika ada
+        if ($peminjaman->butuh_gladi_pk && $peminjaman->tanggal_gladi_pk && $peminjaman->tanggal_pengembalian_gladi_pk) {
+            $peminjamanPerKelompok[] = [
+                'id_peminjaman_pkp' => $peminjaman->id_peminjaman_pkp,
+                'nama_peminjam_pk' => $peminjaman->nama_peminjam_pk,
+                'tanggal_mulai_pk' => $peminjaman->tanggal_gladi_pk,
+                'tanggal_selesai_pk' => $peminjaman->tanggal_pengembalian_gladi_pk,
+                'nama_kegiatan_pk' => $peminjaman->nama_kegiatan_pk . ' (Gladi)',
+                'perlengkapan' => $perlengkapanDipinjam,
+            ];
+        }
+    }
+
+    // Urutkan berdasarkan tanggal mulai
+    usort($peminjamanPerKelompok, function ($a, $b) {
+        return strtotime($a['tanggal_mulai_pk']) - strtotime($b['tanggal_mulai_pk']);
+    });
+
+    return view('peminjaman_perlengkapan', compact('peminjamanPerKelompok'));
+}
+    
 }

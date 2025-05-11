@@ -69,8 +69,30 @@
             </div>
         </div>
 
-    </div>
+
+<div class="col-md-4 border rounded p-3 mb-3">
+    <h4>Peminjaman Yang Akan Datang</h4>
+    @forelse ($peminjamanPerKelompok as $peminjaman)
+        <div class="card p-2 mb-2">
+            <strong>Peminjaman ID: {{ $peminjaman['id_peminjaman_pkp'] ?? 'N/A' }}</strong><br>
+            <strong>Nama Peminjam: {{ $peminjaman['nama_peminjam_pk'] ?? '' }}</strong><br>
+            Tanggal Peminjaman:
+            {{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('d - M - Y') : '' }}
+            ({{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('H:i') : '' }} -
+            {{ isset($peminjaman['tanggal_selesai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_selesai_pk'])->format('H:i') : '' }})<br>
+            Kegiatan: {{ $peminjaman['nama_kegiatan_pk'] ?? '' }}<br>
+            Perlengkapan:
+            <ul>
+                @foreach ($peminjaman['perlengkapan'] as $perlengkapan)
+                    <li>{{ $perlengkapan }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @empty
+        <p>Belum ada peminjaman yang disetujui.</p>
+    @endforelse
 </div>
+
 
 {{-- Script --}}
 <script>

@@ -15,6 +15,15 @@
 
     <form action="{{ url('/peminjaman_ruang/save_peminjaman_ruang') }}" method="POST" enctype="multipart/form-data" id="formPeminjaman">
         @csrf
+        @if ($errors->any())
+            <div class="alert alert-danger mt-3">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <input type="hidden" name="id_ruang" value="{{ $ruang->id_ruang }}">
 
         <div class="form-group">
