@@ -90,7 +90,7 @@ class peminjamController extends Controller
         ->exists();
 
     if ($bentrok_jadwal) {
-        return redirect()->back()->withErrors(['tanggal_mulai' => 'Ruang sudah dipesan pada tanggal tersebut.'])->withInput();
+        return redirect()->back()->withErrors(['tanggal_mulai' => 'Ruang sudah dipesan pada tanggal tersebut. '])->withInput();
     }
 
 
@@ -251,44 +251,37 @@ class peminjamController extends Controller
             'surat_peminjaman_pk' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        if ($validator->fails()) {
-            Log::error('Validasi gagal: ' . json_encode($validator->errors()->all()));
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
+       if ($validator->fails()) {
+        Log::error('Validasi gagal: ' . json_encode($validator->errors()->all()));
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
 
+    // Gunakan transaksi database untuk memastikan konsistensi
         // Lakukan validasi bentrok jadwal untuk setiap perlengkapan yang dipilih
-    foreach ($request->id_perlengkapan as $idPerlengkapan) {
-    $bentrok_jadwal = PeminjamanPkp::whereHas('perlengkapan', function ($query) use ($idPerlengkapan) {
-        $query->where('perlengkapan.id_perlengkapan', $idPerlengkapan); // Tambahkan nama tabel 'perlengkapan'
-    })
-    ->where('status_pk', 'Disetujui') // Hanya cek peminjaman yang disetujui
-    ->where(function ($query) use ($request) {
-        $query->where('tanggal_mulai_pk', '<', $request->tanggal_selesai_pk)
-              ->where('tanggal_selesai_pk', '>', $request->tanggal_mulai_pk);
-    })
-    ->exists();
+          // Gunakan transaksi database untuk memastikan konsistensi
+    DB::beginTransaction();
+    try {
+        // Lakukan validasi bentrok jadwal untuk setiap perlengkapan yang dipilih
+        foreach ($request->id_perlengkapan as $idPerlengkapan) {
+            $bentrok_jadwal = PeminjamanPkp::whereHas('perlengkapan', function ($query) use ($idPerlengkapan) {
+                $query->where('perlengkapan.id_perlengkapan', $idPerlengkapan);
+            })
+            ->where('status_pk', 'Disetujui')
+            // Modifikasi di sini untuk memperbolehkan peminjaman di tanggal berikutnya DAN memperbaiki logika bentrok
+            ->where(function ($q) use ($request) {
+                $q->where(function ($q1) use ($request) {
+                    $q1->where('tanggal_mulai_pk', '<', $request->tanggal_selesai_pk)
+                       ->where('tanggal_selesai_pk', '>', $request->tanggal_mulai_pk);
+                });
+            })
+            ->exists();
 
-    if ($bentrok_jadwal) {
-        $perlengkapan = Perlengkapan::findOrFail($idPerlengkapan);
-        return redirect()->back()->withErrors(['id_perlengkapan' => 'Perlengkapan "' . $perlengkapan->nama_perlengkapan . '" sudah dipesan pada tanggal tersebut.'])->withInput();
-    }
-    }
-    ////
-    if ($request->butuh_gladi_pk) {
-        if (!$request->tanggal_gladi_pk || !$request->tanggal_selesai_gladi_pk) {
-            return back()->withErrors([
-                'tanggal_gladi_pk' => 'Tanggal gladi dan selesai gladi wajib diisi jika butuh gladi.'
-            ])->withInput();
+            if ($bentrok_jadwal) {
+                $perlengkapan = Perlengkapan::findOrFail($idPerlengkapan);
+                return redirect()->back()->withErrors(['id_perlengkapan' => 'Perlengkapan "' . $perlengkapan->nama_perlengkapan . '" sudah dipesan pada tanggal tersebut. Mohon perhatikan peminjaman akan datang pada menu peminjaman.'])->withInput();
+            }
         }
-
-        if ($request->tanggal_selesai_gladi_pk < $request->tanggal_gladi_pk) {
-            return back()->withErrors([
-                'tanggal_selesai_gladi_pk' => 'Tanggal selesai gladi harus setelah tanggal mulai gladi.'
-            ])->withInput();
-        }
-    }
-
-
+    
         $status_gladi = $request->butuh_gladi_pk
             ? 'belum'
             : 'tidak_ada_gladi';
@@ -302,57 +295,52 @@ class peminjamController extends Controller
             $file->storeAs('public/surat_peminjaman_perlengkapan', $filename);
         }
 
-        // Gunakan transaksi database untuk memastikan konsistensi
-        DB::beginTransaction();
-        try {
-            // Buat peminjaman baru
-            $peminjaman = PeminjamanPkp::create([
-                'nomor_induk_pk' => $request->nomor_induk_pk,
-                'nama_peminjam_pk' => $request->nama_peminjam_pk,
-                'kontak_pk' => $request->kontak_pk,
-                'email_pk' => $request->email_pk,
-                'nama_kegiatan_pk' => $request->nama_kegiatan_pk,
-                'keterangan_kegiatan_pk' => $request->keterangan_kegiatan_pk,
-                'tanggal_mulai_pk' => $request->tanggal_mulai_pk,
-                'tanggal_selesai_pk' => $request->tanggal_selesai_pk,
-                'butuh_gladi_pk' => $request->butuh_gladi_pk ?? false,
-                'tanggal_gladi_pk' => $request->tanggal_gladi_pk,
-                'tanggal_selesai_gladi_pk' => $request->tanggal_selesai_gladi_pk ?? false,
-                'butuh_livestream_pk' => $request->butuh_livestream_pk ?? false,
-                'butuh_operator_pk' => $request->butuh_operator_pk ?? false,
-                'operator_sound_pk' => $request->operator_sound_pk,
-                'operator_live_pk' => $request->operator_live_pk,
-                'surat_peminjaman_pk' => $filename,
-                'status_pk' => $status_pk,
-                'status_gladi_pk' => $status_gladi,
-                'id_user' => Auth::id(),
-            ]);
-            Log::info('Peminjaman dibuat dengan ID: ' . $peminjaman->id_peminjaman_pkp);
+        // Buat peminjaman baru
+        $peminjaman = PeminjamanPkp::create([
+            'nomor_induk_pk' => $request->nomor_induk_pk,
+            'nama_peminjam_pk' => $request->nama_peminjam_pk,
+            'kontak_pk' => $request->kontak_pk,
+            'email_pk' => $request->email_pk,
+            'nama_kegiatan_pk' => $request->nama_kegiatan_pk,
+            'keterangan_kegiatan_pk' => $request->keterangan_kegiatan_pk,
+            'tanggal_mulai_pk' => $request->tanggal_mulai_pk,
+            'tanggal_selesai_pk' => $request->tanggal_selesai_pk,
+            'butuh_gladi_pk' => $request->butuh_gladi_pk ?? false,
+            'tanggal_gladi_pk' => $request->tanggal_gladi_pk,
+            'tanggal_selesai_gladi_pk' => $request->tanggal_selesai_gladi_pk,
+            'butuh_livestream_pk' => $request->butuh_livestream_pk ?? false,
+            'butuh_operator_pk' => $request->butuh_operator_pk ?? false,
+            'operator_sound_pk' => $request->operator_sound_pk,
+            'operator_live_pk' => $request->operator_live_pk,
+            'surat_peminjaman_pk' => $filename,
+            'status_pk' => $status_pk,
+            'status_gladi_pk' => $status_gladi,
+            'id_pj_peminjaman_pk' => Auth::id(),
+        ]);
+        Log::info('Peminjaman dibuat dengan ID: ' . $peminjaman->id_peminjaman_pkp);
 
-            foreach ($request->id_perlengkapan as $idPerlengkapan) {
-                $perlengkapanItem = Perlengkapan::findOrFail($idPerlengkapan);
-                if ($perlengkapanItem->stok_perlengkapan < 1) {
-                    DB::rollback();
-                    Log::error('Stok perlengkapan tidak mencukupi untuk ID: ' . $idPerlengkapan);
-                    return redirect()->back()->withErrors(['stok' => 'Stok perlengkapan tidak mencukupi.'])->withInput();
-                }
-                $perlengkapanItem->stok_perlengkapan -= 1;
-                $perlengkapanItem->save();
-            }
-            // Perbaikan: Gunakan attach untuk menyimpan relasi dengan data tambahan
-            $peminjaman->perlengkapan()->attach($request->id_perlengkapan);
-            Log::info('Perlengkapan diattach ke peminjaman.');
 
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Terjadi kesalahan: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
+
+        foreach ($request->id_perlengkapan as $idPerlengkapan) {
+            $perlengkapanItem = Perlengkapan::findOrFail($idPerlengkapan);
+            $perlengkapanItem->stok_perlengkapan -= 1;
+            $perlengkapanItem->save();
         }
+        // Perbaikan: Gunakan attach untuk menyimpan relasi dengan data tambahan
+        $peminjaman->perlengkapan()->attach($request->id_perlengkapan);
+        Log::info('Perlengkapan diattach ke peminjaman.');
 
-        Log::info('Peminjaman berhasil diajukan.');
-        return redirect('peminjaman_perlengkapan')->with('success', 'Peminjaman perlengkapan berhasil diajukan.');
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Terjadi kesalahan: ' . $e->getMessage());
+        return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
     }
+
+    Log::info('Peminjaman berhasil diajukan.');
+    return redirect('peminjaman_perlengkapan')->with('success', 'Peminjaman perlengkapan berhasil diajukan.');
+}
+
 
     public function kirimKeFormPeminjaman(Request $request)
     {

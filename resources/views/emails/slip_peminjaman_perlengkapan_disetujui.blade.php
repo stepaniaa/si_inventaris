@@ -6,7 +6,7 @@
 </head>
 <body>
     <h2>Slip Peminjaman Perlengkapan</h2>
-    <p>Halo {{ $peminjaman->nama_peminjam_pk }},</p>
+    <p>Halo </p>
     <p>Permohonan peminjaman perlengkapan Anda telah <strong>disetujui</strong>. Berikut detailnya:</p>
 
     <ul>

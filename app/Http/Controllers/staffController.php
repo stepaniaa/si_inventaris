@@ -597,8 +597,13 @@ public function save_validasi_peminjaman_perlengkapan(Request $request, Peminjam
             Log::error('Gagal kirim email: ' . $e->getMessage());
             return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
         }
-
         return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+
+        if (Mail::failures()) {
+    dd(Mail::failures()); // Cetak informasi error
+} else {
+    echo "Email berhasil dikirim!";
+}
 
     } catch (\Exception $e) {
         DB::rollBack();
