@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\PeminjamanRuang ; 
+use App\PeminjamanRutin;
 use App\Ruang; 
 use App\Perlengkapan; 
 use App\PeminjamanPkp;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log; // Import kelas Log
 use Illuminate\Support\Facades\DB;
@@ -20,34 +22,54 @@ class peminjamController extends Controller
 
     public function peminjaman_ruang()
     {
-        $ruang = Ruang::all();
-        $peminjamanDisetujui = PeminjamanRuang::where('status', 'disetujui')->get();
-    
-        $jadwal = [];
-    
-        foreach ($peminjamanDisetujui as $p) {
+         Log::info('Akses halaman peminjaman ruang.');
+$ruang = Ruang::all();
+$peminjamanDisetujui = PeminjamanRuang::where('status', 'disetujui')->get();
+
+$jadwal = [];
+$tanggalSudahDitambahkan = []; // Array untuk melacak tanggal yang sudah ditambahkan
+
+foreach ($peminjamanDisetujui as $p) {
+    // Fungsi untuk menambahkan jadwal dengan pengecekan duplikasi
+    $tambahJadwal = function ($nama_kegiatan, $tanggal_mulai, $tanggal_selesai, $jenis, $ruang) use (&$jadwal, &$tanggalSudahDitambahkan) {
+        $tanggalMulaiStr = date('Y-m-d H:i:s', strtotime($tanggal_mulai)); //format tanggal
+        if (!in_array($tanggalMulaiStr, $tanggalSudahDitambahkan)) {
             $jadwal[] = [
-                'nama_kegiatan' => $p->nama_kegiatan,
-                'tanggal' => $p->tanggal_mulai,
-                'waktu_selesai' => $p->tanggal_selesai,
-                'jenis' => 'Pelaksanaan',
-                'ruang' => $p->ruang->nama_ruang,
+                'nama_kegiatan' => $nama_kegiatan,
+                'tanggal_mulai' => $tanggal_mulai,
+                'tanggal_selesai' => $tanggal_selesai,
+                'jenis' => $jenis,
+                'ruang' => $ruang,
             ];
-    
-            if ($p->butuh_gladi && $p->tanggal_gladi && $p->tanggal_pengembalian_gladi) {
-                $jadwal[] = [
-                    'nama_kegiatan' => $p->nama_kegiatan . ' (Gladi)',
-                    'tanggal' => $p->tanggal_gladi,
-                    'waktu_selesai' => $p->tanggal_pengembalian_gladi,
-                    'jenis' => 'Gladi',
-                    'ruang' => $p->ruang->nama_ruang,
-                ];
+            $tanggalSudahDitambahkan[] = $tanggalMulaiStr; // Tambahkan tanggal ke array pelacak
+        }
+    };
+
+    // Jadwal Peminjaman Biasa
+    $tambahJadwal($p->nama_kegiatan, $p->tanggal_mulai, $p->tanggal_selesai, 'Pelaksanaan', $p->ruang->nama_ruang);
+
+    // Jadwal Gladi
+    if ($p->butuh_gladi && $p->tanggal_gladi && $p->tanggal_pengembalian_gladi) {
+        $tambahJadwal($p->nama_kegiatan . ' (Gladi)', $p->tanggal_gladi, $p->tanggal_pengembalian_gladi, 'Gladi', $p->ruang->nama_ruang);
+    }
+
+    // Jadwal Rutin dari JSON
+    if ($p->rutin && $p->jadwal_rutin_json) {
+        $jadwalRutin = json_decode($p->jadwal_rutin_json, true);
+        if (isset($jadwalRutin['dates']) && is_array($jadwalRutin['dates'])) {
+            foreach ($jadwalRutin['dates'] as $sesi) {
+                $tanggalMulaiRutin = $sesi['tanggal'] . ' ' . $sesi['waktu_mulai'];
+                $tanggalSelesaiRutin = $sesi['tanggal'] . ' ' . $sesi['waktu_selesai'];
+                $tambahJadwal($p->nama_kegiatan . ' (Rutin)', $tanggalMulaiRutin, $tanggalSelesaiRutin, 'Rutin', $p->ruang->nama_ruang);
             }
         }
-    
-        usort($jadwal, fn($a, $b) => strtotime($a['tanggal']) - strtotime($b['tanggal']));
-    
-        return view('peminjaman_ruang', compact('ruang', 'jadwal'));
+    }
+}
+
+usort($jadwal, fn($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tanggal_mulai']));
+
+return view('peminjaman_ruang', compact('ruang', 'jadwal'));
+
     }
     
     public function peminjaman_ruang_formadd($id_ruang)
@@ -58,11 +80,14 @@ class peminjamController extends Controller
 
     public function save_peminjaman_ruang(Request $request)
     {
+        Log::info('Mencoba menyimpan pengajuan peminjaman ruang.');
         $validated = $request->validate([
+            //data peminjam
             'nomor_induk' => 'required|string|max:50',
             'nama_peminjam' => 'required|string|max:100',
             'kontak' => 'required|string|max:20',
             'email' => 'required|email',
+            //data peminjaman
             'nama_kegiatan' => 'required|string|max:100',
             'keterangan_kegiatan' => 'nullable|string',
             'id_ruang' => 'required|exists:ruang,id_ruang',
@@ -79,86 +104,225 @@ class peminjamController extends Controller
             'operator_live' => 'nullable|string',
             'status' => 'nullable|string',
             'surat_peminjaman' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // <--- validasi file
+            //tambahan 
+             'asal_unit' => 'nullable|string',
+             'peran' => 'nullable|string',
+            'rutin' => 'nullable|boolean',
+             'frekuensi' => 'nullable|in:harian,mingguan,bulanan',
+            'hari_rutin' => 'nullable|string',
+            'waktu_mulai_rutin' => 'nullable|date_format:H:i',
+            'waktu_selesai_rutin' => 'nullable|date_format:H:i|after:waktu_mulai_rutin',
         ]);
 
-        $bentrok_jadwal = PeminjamanRuang::where('id_ruang', $request->id_ruang)
-        ->where('status', 'Disetujui') // Hanya cek peminjaman yang disetujui
-        ->where(function ($query) use ($request) {
-            $query->where('tanggal_mulai', '<', $request->tanggal_selesai)
-                  ->where('tanggal_selesai', '>', $request->tanggal_mulai);
-        })
-        ->exists();
+        Log::info('Data yang divalidasi:', $validated);
 
-    if ($bentrok_jadwal) {
-        return redirect()->back()->withErrors(['tanggal_mulai' => 'Ruang sudah dipesan pada tanggal tersebut. '])->withInput();
-    }
+        $ruangId = $request->id_ruang;
+        $tanggalMulaiBaru = Carbon::parse($request->tanggal_mulai);
+        $tanggalSelesaiBaru = Carbon::parse($request->tanggal_selesai);
 
+        // Poin 3: Cek status pengembalian terakhir untuk RUANG ini (oleh siapapun)
+       // $peminjamanBermasalah = PeminjamanRuang::where('id_ruang', $ruangId)
+          //  ->whereIn('status_pengembalian', ['belum_dikembalikan', 'terlambat', 'rusak', 'hilang'])
+          //  ->exists();
 
-        if ($request->butuh_gladi) {
-            if (!$request->tanggal_gladi || !$request->tanggal_pengembalian_gladi) {
-                return back()->withErrors([
-                    'tanggal_gladi' => 'Tanggal gladi dan selesai gladi wajib diisi jika butuh gladi.'
-                ])->withInput();
-            }
-    
-            if ($request->tanggal_pengembalian_gladi < $request->tanggal_gladi) {
-                return back()->withErrors([
-                    'tanggal_pengembalian_gladi' => 'Tanggal selesai gladi harus setelah tanggal mulai gladi.'
-                ])->withInput();
-            }
+        //if ($peminjamanBermasalah) {
+           // Log::warning('Ruang ID ' . $ruangId . ' tidak dapat dipesan karena status pengembalian bermasalah.');
+           // return redirect()->back()->withErrors(['id_ruang' => "Ruang ini saat ini tidak dapat dipesan karena status pengembalian dari peminjaman sebelumnya belum selesai atau bermasalah."])->withInput();
+        //}
+
+        // Poin 2: Cek bentrokan jadwal (peminjaman biasa, gladi, dan rutin yang disetujui)
+        $bentrok = PeminjamanRuang::where('id_ruang', $ruangId)
+            ->where('status', 'disetujui')
+            ->where(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                // Bentrokan dengan peminjaman biasa
+                $query->where('tanggal_mulai', '<', $tanggalSelesaiBaru)
+                      ->where('tanggal_selesai', '>', $tanggalMulaiBaru);
+            })
+            ->orWhere(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                // Bentrokan dengan gladi
+                $query->where('tanggal_gladi', '<', $tanggalSelesaiBaru)
+                      ->where('tanggal_pengembalian_gladi', '>', $tanggalMulaiBaru)
+                      ->where('butuh_gladi', true);
+            })
+            ->orWhere(function ($query) use ($tanggalMulaiBaru, $tanggalSelesaiBaru, $ruangId) {
+                // Bentrokan dengan sesi rutin
+                $query->where('id_ruang', $ruangId)
+                      ->where('status', 'disetujui')
+                      ->where('rutin', true)
+                      ->where('jadwal_rutin_json', '!=', null)
+                      ->whereJsonLength('jadwal_rutin_json->dates', '>', 0)
+                      ->where(function ($sq) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                          $sq->whereRaw('JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].tanggal") = ?', [$tanggalMulaiBaru->toDateString()])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_mulai")) < ?', [$tanggalSelesaiBaru->format('H:i')])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_selesai")) > ?', [$tanggalMulaiBaru->format('H:i')]);
+                      })
+                      ->orWhere(function ($sq) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                          $sq->whereRaw('JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].tanggal") = ?', [$tanggalSelesaiBaru->toDateString()])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_mulai")) < ?', [$tanggalSelesaiBaru->format('H:i')])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_selesai")) > ?', [$tanggalMulaiBaru->format('H:i')]);
+                      })
+                      ->orWhere(function ($sq) use ($tanggalMulaiBaru, $tanggalSelesaiBaru) {
+                          $sq->whereRaw('JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].tanggal") > ?', [$tanggalMulaiBaru->toDateString()])
+                             ->whereRaw('JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].tanggal") < ?', [$tanggalSelesaiBaru->toDateString()])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_mulai")) < ?', [$tanggalSelesaiBaru->format('H:i')])
+                             ->whereRaw('TIME(JSON_EXTRACT(jadwal_rutin_json, "$.dates[*].waktu_selesai")) > ?', [$tanggalMulaiBaru->format('H:i')]);
+                      });
+            })
+            ->exists();
+
+        if ($bentrok) {
+            Log::warning('Pengajuan peminjaman ruang ID ' . $ruangId . ' bentrok dengan jadwal lain.');
+            return redirect()->back()->withErrors(['tanggal_mulai' => 'Ruang sudah dipesan pada waktu yang Anda pilih. Silakan cek jadwal.'])->withInput();
         }
-    
-        $validated['status_gladi'] = $request->butuh_gladi ? 'belum' : 'tidak_ada_gladi';
-        $validated['status'] = 'diproses';
 
         if ($request->hasFile('surat_peminjaman')) {
             $file = $request->file('surat_peminjaman');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('public/surat_peminjaman', $filename);
-    
+            $path = $file->storeAs('public/surat_peminjaman', $filename);
             $validated['surat_peminjaman'] = $filename;
+            Log::info('Surat peminjaman disimpan di: ' . $path);
         }
-    
-        PeminjamanRuang::create($validated);
-    
+
+        $validated['id_pj_peminjaman'] = auth()->id();
+        $validated['rutin'] = $request->rutin ? true : false;
+        $validated['jadwal_rutin_json'] = null;
+
+        $peminjamanRuang = PeminjamanRuang::create($validated);
+        Log::info('Pengajuan peminjaman ruang berhasil dibuat dengan ID: ' . $peminjamanRuang->id_peminjaman_ruang);
+
+        // Jika peminjaman rutin
+        if ($validated['rutin']) {
+            $startDateRutin = Carbon::parse($request->tanggal_mulai);
+            $endDateRutin = Carbon::parse($request->tanggal_selesai);
+            $frekuensi = $request->frekuensi;
+            $hariRutin = $request->hari_rutin;
+            $waktuMulaiRutin = $request->waktu_mulai_rutin;
+            $waktuSelesaiRutin = $request->waktu_selesai_rutin;
+
+            $dates = $this->generateRepeatingDatesForJson($startDateRutin, $endDateRutin, $frekuensi, $hariRutin, $waktuMulaiRutin, $waktuSelesaiRutin);
+
+            $validated['jadwal_rutin_json'] = json_encode([
+                'frekuensi' => $frekuensi,
+                'hari_rutin' => $hariRutin,
+                'waktu_mulai_rutin' => $waktuMulaiRutin,
+                'waktu_selesai_rutin' => $waktuSelesaiRutin,
+                'tanggal_mulai_rutin' => $startDateRutin->toDateString(),
+                'tanggal_selesai_rutin' => $endDateRutin->toDateString(),
+                'dates' => $dates,
+            ]);
+
+            $peminjamanRuang->update(['jadwal_rutin_json' => $validated['jadwal_rutin_json']]);
+            Log::info('Jadwal rutin berhasil disimpan untuk peminjaman ID: ' . $peminjamanRuang->id_peminjaman_ruang, ['jadwal' => $validated['jadwal_rutin_json']]);
+        }
+
+        Log::info('Redirecting setelah pengajuan peminjaman.');
         return redirect('/peminjaman_ruang')->with('success', 'Peminjaman berhasil diajukan.');
     }
 
-    public function detail_peminjaman_ruang($id_ruang)
-    {
-        $ruang = Ruang::all();
+    // Fungsi untuk generate tanggal rutin (untuk JSON)
+   private function generateRepeatingDatesForJson($startDate, $endDate, $frekuensi, $hari_id, $waktuMulai, $waktuSelesai)
+{
+    $dates = [];
+    $currentDate = $startDate->copy()->setTimeFromTimeString($waktuMulai);
+    $endDateWithTime = $endDate->copy()->setTimeFromTimeString($waktuSelesai);
+    $logData = [
+        'startDate' => $startDate,
+        'endDate' => $endDate,
+        'frekuensi' => $frekuensi,
+        'hari_id' => $hari_id,
+        'waktuMulai' => $waktuMulai,
+        'waktuSelesai' => $waktuSelesai
+    ];
+    Log::info('Memulai generate jadwal rutin.', $logData);
 
-        $peminjamanDisetujui = PeminjamanRuang::where('status', 'disetujui')->get();
-    
-        $jadwal = [];
-    
-        foreach ($peminjamanDisetujui as $p) {
-            // Tambah kegiatan utama
-            $jadwal[] = [
-                'nama_kegiatan' => $p->nama_kegiatan,
-                'tanggal' => $p->tanggal_mulai,
-                'waktu_selesai' => $p->tanggal_selesai,
-                'jenis' => 'Pelaksanaan',
-                'ruang' => $p->ruang->nama_ruang,
-            ];
-    
-            // Tambah gladi jika ada
-            if ($p->butuh_gladi && $p->tanggal_gladi && $p->tanggal_pengembalian_gladi) {
-                $jadwal[] = [
-                    'nama_kegiatan' => $p->nama_kegiatan . ' (Gladi)',
-                    'tanggal' => $p->tanggal_gladi,
-                    'waktu_selesai' => $p->tanggal_pengembalian_gladi,
-                    'jenis' => 'Gladi',
-                    'ruang' => $p->ruang->nama_ruang,
-                ];
-            }
-        }
-    
-        // Urutkan
-        usort($jadwal, fn($a, $b) => strtotime($a['tanggal']) - strtotime($b['tanggal']));
-    
-        return view('peminjaman_ruang', compact('ruang', 'jadwal'));
+    // Mapping hari Indonesia ke Inggris
+    $hariInggris = [
+        'minggu' => 'Sunday',
+        'senin' => 'Monday',
+        'selasa' => 'Tuesday',
+        'rabu' => 'Wednesday',
+        'kamis' => 'Thursday',
+        'jumat' => 'Friday',
+        'sabtu' => 'Saturday',
+    ];
+    $hariInggrisDipilih = strtolower($hariInggris[$hari_id] ?? '');
+
+    // Validasi frekuensi
+    if (!in_array($frekuensi, ['harian', 'mingguan', 'bulanan'])) {
+        Log::warning('Frekuensi tidak dikenali: ' . $frekuensi);
+        return []; // Mengembalikan array kosong jika frekuensi tidak valid
     }
+
+    // Jika hari rutin tidak valid
+    if ($frekuensi !== 'harian' && !$hariInggrisDipilih) {
+        Log::warning('Hari rutin tidak valid: ' . $hari_id);
+        return [];
+    }
+
+    Log::info('Target Hari: ' . $hariInggrisDipilih);
+    Log::info('Tanggal Mulai: ' . $currentDate->format('Y-m-d H:i:s'));
+    Log::info('Tanggal Selesai: ' . $endDateWithTime->format('Y-m-d H:i:s'));
+
+
+    while ($currentDate->lte($endDateWithTime)) {
+        $tambahTanggal = false;
+        if ($frekuensi === 'harian') {
+            $tambahTanggal = true;
+        } elseif ($frekuensi === 'mingguan' && strtolower($currentDate->format('l')) === $hariInggrisDipilih) {
+            $tambahTanggal = true;
+        } elseif ($frekuensi === 'bulanan' && $currentDate->format('d') === $startDate->format('d') && strtolower($currentDate->format('l')) === $hariInggrisDipilih) {
+            $tambahTanggal = true;
+        }
+
+        if ($tambahTanggal) {
+            $tanggalFormat = $currentDate->format('Y-m-d');
+            $waktuMulaiSesi = $waktuMulai;
+            $waktuSelesaiSesi = $waktuSelesai;
+            $dates[] = [
+                'tanggal' => $tanggalFormat,
+                'waktu_mulai' => $waktuMulaiSesi,
+                'waktu_selesai' => $waktuSelesaiSesi,
+            ];
+            Log::info('Menambahkan tanggal:', [
+                'tanggal' => $tanggalFormat,
+                'waktu_mulai' => $waktuMulaiSesi,
+                'waktu_selesai' => $waktuSelesaiSesi,
+                'hari_inggris' => strtolower($currentDate->format('l'))
+            ]);
+        }
+
+        if ($frekuensi === 'harian') {
+            $currentDate->addDay();
+        } elseif ($frekuensi === 'mingguan') {
+            $currentDate->addWeek();
+        } elseif ($frekuensi === 'bulanan') {
+             $currentDate->addMonth();
+        }
+    }
+
+    Log::info('Selesai generate jadwal rutin. Jumlah tanggal: ' . count($dates));
+    return $dates;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //-----------------------------------------------------------------------------------------------------]
     //Peminjaman Perlengkapan 

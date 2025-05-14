@@ -4,101 +4,107 @@
 @section('peminjam_navigasi')
 @endsection
 @section('content')
-<div class="container">
+<div class="container-fluid p-2"> {{-- Menggunakan container-fluid dan mengurangi padding --}}
     <div class="row">
-
-        {{-- Daftar Perlengkapan --}}
-        <div class="col-md-8">
+            <div class="col-md-8">
+            <div class="mb-3"> {{-- Berikan margin bawah pada judul dan peringatan --}}
+                <h4 class="mb-1">Daftar Perlengkapan</h4> {{-- Kurangi margin bawah pada judul --}}
+                <p class="mb-0">
+                    <small><i><b>Penting:</b> Periksa jadwal peminjaman yang akan datang untuk menghindari bentrok jadwal.</i></small> {{-- Gunakan small dan kurangi margin bawah --}}
+                </p>
+            </div>
             <div class="card">
-                <div class="card-header">Daftar Perlengkapan</div>
-                <div class="card-body">
-
-                    <input type="text" class="form-control mb-3" placeholder="Cari">
-
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Kode</th>
-                                <th>Nama Perlengkapan</th>
-                                <th>Stok</th>
-                                <th>Status Saat Ini</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($perlengkapan as $index => $item)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $item->kode }}</td>
-                                    <td>{{ $item->nama_perlengkapan }}</td>
-                                    <td>{{ $item->stok }}</td>
-                                    <td>{{ $item->status_saat_ini }}</td>
-                                    <td>
-                                        <button class="btn btn-success btn-sm"
+                <div class="card-header py-2"> {{-- Mengurangi padding atas dan bawah header --}}
+                    <h6 class="fw-bold">Daftar Perlengkapan</h6> {{-- Menggunakan small dan fw-bold untuk judul --}}
+                </div>
+                <div class="card-body p-2"> {{-- Mengurangi padding dalam body card --}}
+                    <input type="text" class="form-control form-control-sm mb-2" placeholder="Cari"> {{-- Menggunakan form-control-sm dan mengurangi margin bawah --}}
+                    <div class="table-responsive"> {{-- Menambahkan responsive table --}}
+                        <table class="table table-sm table-bordered"> {{-- Menggunakan table-sm dan table-bordered --}}
+                            <thead>
+                                <tr class="align-middle"> {{-- Menengahkan teks vertikal --}}
+                                    <th>No</th>
+                                    <th>Kode</th>
+                                    <th>Nama Perlengkapan</th>
+                                    <th>Stok</th>
+                                    <th>Status Saat Ini</th>
+                                    <th class="text-center">Aksi</th> {{-- Menengahkan teks aksi --}}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($perlengkapan as $index => $item)
+                                <tr class="align-middle"> {{-- Menengahkan teks vertikal --}}
+                                    <td>{{ $index + 1 }}</td> {{-- Menggunakan small --}}
+                                    <td>{{ $item->kode_perlengkapan }}</td> {{-- Menggunakan small --}}
+                                    <td>{{ $item->nama_perlengkapan }}</td> {{-- Menggunakan small --}}
+                                    <td>{{ $item->stok }}</td> {{-- Menggunakan small --}}
+                                    <td>{{ $item->status_saat_ini }}</td> {{-- Menggunakan small --}}
+                                    <td class="text-center"> {{-- Menengahkan tombol --}}
+                                        <button class="btn btn-success btn-sm py-0 px-1" {{-- Mengurangi padding tombol --}}
                                             onclick="tambahKeKeranjang('{{ $item->id_perlengkapan }}', '{{ $item->nama_perlengkapan }}')">+</button>
                                     </td>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         {{-- Daftar Perlengkapan Dipinjam --}}
-        <div class="col-md-4">
+        <div class="col-md-4 mb-2 pl-1"> {{-- Mengurangi margin bawah dan padding kiri --}}
             <div class="card">
-                <div class="card-header">Daftar Perlengkapan Dipinjam</div>
-                <div class="card-body">
-
-                    <ul id="list-dipinjam" class="list-group mb-3">
+                <div class="card-header py-2"> {{-- Mengurangi padding atas dan bawah header --}}
+                    <h6 class="fw-bold">Daftar Perlengkapan Dipinjam</h6> {{-- Menggunakan small dan fw-bold untuk judul --}}
+                </div>
+                <div class="card-body p-2"> {{-- Mengurangi padding dalam body card --}}
+                    <ul id="list-dipinjam" class="list-group list-group-flush mb-2"> {{-- Mengurangi margin bawah list dan menggunakan flush --}}
                         {{-- Daftar perlengkapan akan muncul di sini --}}
                     </ul>
-
                     <form action="{{ url('/peminjaman_perlengkapan/kirimKeFormPeminjaman') }}" method="POST">
                         @csrf
                         <div id="input-perlengkapan-container">
                             {{-- Input hidden untuk ID perlengkapan akan ditambahkan di sini oleh JavaScript --}}
                         </div>
-                        <button type="submit" class="btn btn-primary w-100" {{ count(session('id_perlengkapan_dipilih', [])) > 0 ? '' : 'disabled' }}>Selanjutnya</button>
+                        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" {{ count(session('id_perlengkapan_dipilih', [])) > 0 ? '' : 'disabled' }}>Selanjutnya</button> {{-- Menggunakan btn-sm dan mengurangi padding tombol --}}
                     </form>
-
                 </div>
             </div>
         </div>
 
-
-<div class="col-md-4 border rounded p-3 mb-3">
-    <h4>Peminjaman Yang Akan Datang</h4>
-    @forelse ($peminjamanPerKelompok as $peminjaman)
-        <div class="card p-2 mb-2">
-            <strong>Peminjaman ID: {{ $peminjaman['id_peminjaman_pkp'] ?? 'N/A' }}</strong><br>
-            <strong>Nama Peminjam: {{ $peminjaman['nama_peminjam_pk'] ?? '' }}</strong><br>
-            Tanggal Peminjaman:
-            {{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('d - M - Y') : '' }}
-            ({{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('H:i') : '' }} -
-            {{ isset($peminjaman['tanggal_selesai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_selesai_pk'])->format('H:i') : '' }})<br>
-            Kegiatan: {{ $peminjaman['nama_kegiatan_pk'] ?? '' }}<br>
-            Perlengkapan:
-            <ul>
-                @foreach ($peminjaman['perlengkapan'] as $perlengkapan)
-                    <li>{{ $perlengkapan }}</li>
-                @endforeach
-            </ul>
+        {{-- Peminjaman Yang Akan Datang --}}
+        <div class="col-md-4 mt-2"> {{-- Mengurangi margin atas --}}
+            <div class="border rounded p-2"> {{-- Mengurangi padding --}}
+                <small class="fw-bold">Peminjaman Yang Akan Datang</small> {{-- Menggunakan small dan fw-bold untuk judul --}}
+                @forelse ($peminjamanPerKelompok as $peminjaman)
+                    <div class="card p-2 mb-2"> {{-- Mengurangi padding card dan margin bawah --}}
+                        <small><strong>Peminjaman ID:</strong> {{ $peminjaman['id_peminjaman_pkp'] ?? 'N/A' }}</small><br> {{-- Menggunakan small --}}
+                        <small><strong>Nama Peminjam:</strong> {{ $peminjaman['nama_peminjam_pk'] ?? '' }}</small><br> {{-- Menggunakan small --}}
+                        <small><strong>Tanggal Peminjaman:</strong>
+                        {{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('d-M-Y H:i') : '' }} -
+                        {{ isset($peminjaman['tanggal_selesai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_selesai_pk'])->format('H:i') : '' }}</small><br> {{-- Menggunakan small dan format tanggal lebih ringkas --}}
+                        <small><strong>Kegiatan:</strong> {{ $peminjaman['nama_kegiatan_pk'] ?? '' }}</small><br> {{-- Menggunakan small --}}
+                        <small><strong>Perlengkapan:</strong></small> {{-- Menggunakan small --}}
+                        <ul class="mb-0 pl-3"> {{-- Mengurangi margin bawah ul dan memberikan padding kiri --}}
+                            @foreach ($peminjaman['perlengkapan'] as $perlengkapan)
+                                <li><small>{{ $perlengkapan }}</small></li> {{-- Menggunakan small --}}
+                            @endforeach
+                        </ul>
+                    </div>
+                @empty
+                    <small><p class="mb-0">Belum ada peminjaman yang disetujui.</p></small> {{-- Menggunakan small dan mengurangi margin bawah --}}
+                @endforelse
+            </div>
         </div>
-    @empty
-        <p>Belum ada peminjaman yang disetujui.</p>
-    @endforelse
-</div>
 
+    </div>
+</div>
 
 {{-- Script --}}
 <script>
     let perlengkapanDipilih = [];
 
-    // Load keranjang dari session saat halaman dimuat
     document.addEventListener('DOMContentLoaded', function() {
         const storedItems = sessionStorage.getItem('perlengkapanDipilih');
         if (storedItems) {
@@ -117,32 +123,31 @@
 
         perlengkapanDipilih.push({ id_perlengkapan, nama });
         renderKeranjang();
-        sessionStorage.setItem('perlengkapanDipilih', JSON.stringify(perlengkapanDipilih)); // Simpan ke sessionStorage
+        sessionStorage.setItem('perlengkapanDipilih', JSON.stringify(perlengkapanDipilih));
     }
 
     function hapusDariKeranjang(id_perlengkapan) {
         id_perlengkapan = Number(id_perlengkapan);
         perlengkapanDipilih = perlengkapanDipilih.filter(item => item.id_perlengkapan !== id_perlengkapan);
         renderKeranjang();
-        sessionStorage.setItem('perlengkapanDipilih', JSON.stringify(perlengkapanDipilih)); // Update sessionStorage
+        sessionStorage.setItem('perlengkapanDipilih', JSON.stringify(perlengkapanDipilih));
     }
 
     function renderKeranjang() {
         const list = document.getElementById('list-dipinjam');
         list.innerHTML = '';
         const inputContainer = document.getElementById('input-perlengkapan-container');
-        inputContainer.innerHTML = ''; // Bersihkan input hidden sebelumnya
+        inputContainer.innerHTML = '';
 
         perlengkapanDipilih.forEach(item => {
             const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center p-1'; {{-- Mengurangi padding list item --}}
             li.innerHTML = `
-                ${item.nama}
-                <button class="btn btn-danger btn-sm" onclick="hapusDariKeranjang(${item.id_perlengkapan})">Batal</button>
+                <small>${item.nama}</small> {{-- Menggunakan small --}}
+                <button class="btn btn-danger btn-sm py-0 px-1" onclick="hapusDariKeranjang(${item.id_perlengkapan})">Batal</button> {{-- Mengurangi padding tombol --}}
             `;
             list.appendChild(li);
 
-            // Tambahkan input hidden untuk setiap ID
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'id_perlengkapan_dipilih[]';
@@ -150,7 +155,6 @@
             inputContainer.appendChild(input);
         });
 
-        // Aktifkan atau nonaktifkan tombol "Selanjutnya" berdasarkan apakah ada item di keranjang
         const selanjutnyaButton = document.querySelector('button[type="submit"]');
         if (selanjutnyaButton) {
             selanjutnyaButton.disabled = perlengkapanDipilih.length === 0;

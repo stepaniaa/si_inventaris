@@ -21,15 +21,22 @@
         <thead>
             <tr>
                 <th>No</th>
+                <th>ID Peminjaman</th>
                 <th>Ruang</th>
                 <th>Nama Peminjam</th>
                 <th>Nomor Induk</th>
+                <th>Asal Unit</th>
+                <th>Peran</th>
                 <th>Kontak</th>
                 <th>Email</th>
                 <th>Nama Kegiatan</th>
                 <th>Keterangan Kegiatan</th>
                 <th>Tanggal Mulai</th>
                 <th>Tanggal Selesai</th>
+                <th>Hari rutin</th>
+                <th>Waktu Mulai rutin</th>
+                <th>Waktu Selesai</th>    
+                <th>Frekuensi</th>
                 <th>Jumlah Kursi Tambahan</th>
                 <th>Butuh Gladi</th>
                 <th>Tanggal Gladi</th>
@@ -46,15 +53,22 @@
             @foreach ($peminjamans as $index => $peminjaman)
             <tr>
                 <td>{{ $index + $peminjamans->firstItem() }}</td>
+                <td>{{ $peminjaman->id_peminjaman_ruang }}</td>
                 <td>{{ $peminjaman->ruang->nama_ruang ?? '-' }}</td>
                 <td>{{ $peminjaman->nama_peminjam }}</td>
                 <td>{{ $peminjaman->nomor_induk }}</td>
+                <td>{{ $peminjaman->asal_unit }}</td>
+                <td>{{ $peminjaman->peran }}</td>
                 <td>{{ $peminjaman->kontak }}</td>
                 <td>{{ $peminjaman->email }}</td>
                 <td>{{ $peminjaman->nama_kegiatan }}</td>
                 <td>{{ $peminjaman->keterangan_kegiatan }}</td>
                 <td>{{ $peminjaman->tanggal_mulai }}</td>
                 <td>{{ $peminjaman->tanggal_selesai }}</td>
+                <td>{{ $peminjaman->hari_rutin }}</td>
+                <td>{{ $peminjaman->waktu_mulai_rutin }}</td>
+                 <td>{{ $peminjaman->waktu_selesai_rutin }}</td>
+                   <td>{{ $peminjaman->frekuensi }}</td>
                 <td>{{ $peminjaman->jumlah_kursi_tambahan ?? '-' }}</td>
                 <td>{{ $peminjaman->butuh_gladi ? 'Ya' : 'Tidak' }}</td>
                 <td>{{ $peminjaman->tanggal_gladi ?? '-' }}</td>

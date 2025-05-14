@@ -5,12 +5,13 @@
 
 @section('content')
 <div class="container mt-4">
+    <div class="card p-3 mb-4 shadow-sm border">
     <h2>Form Peminjaman Ruang: <strong>{{ $ruang->nama_ruang }}</strong></h2>
-
     <div class="mb-4">
         <p><strong>Deskripsi:</strong> {{ $ruang->deskripsi_ruang ?? '-' }}</p>
         <p><strong>Kapasitas:</strong> {{ $ruang->kapasitas_ruang ?? '-' }}</p>
         <p><strong>Status Saat Ini:</strong> {{ $ruang->status ?? '-' }}</p>
+    </div>
     </div>
 
     <form action="{{ url('/peminjaman_ruang/save_peminjaman_ruang') }}" method="POST" enctype="multipart/form-data" id="formPeminjaman">
@@ -34,6 +35,26 @@
         <div class="form-group">
             <label>Nama Peminjam</label>
             <input type="text" name="nama_peminjam" class="form-control" required>
+        </div>
+
+        <div class="form-group" id="asalUnitSection">
+             <label for="asal_unit">Asal Unit</label>
+                <select name="asal_unit" id="asal_unit" class="form-control">
+                <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="fti">Fakultas Teknologi Informasi</option>
+                <option value="fad">Fakultas Arsitektur dan Desain</option>
+                <option value="fb">Fakultas Bisnis</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="peranSection">
+             <label for="peran">Status Peminjam</label>
+                <select name="peran" id="peran" class="form-control">
+                <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="dosen">Dosen</option>
+                <option value="pekerja">Staff Unit</option>
+                <option value="mahasiswa">Mahasiswa</option>
+            </select>
         </div>
 
         <div class="form-group">
@@ -86,6 +107,48 @@
             <input type="datetime-local" name="tanggal_gladi" class="form-control">
         </div>
 
+       <div class="form-check">
+        <input type="checkbox" name="rutin" value="1" id="rutinCheck" class="form-check-input">
+        <label class="form-check-label" for="rutinCheck">Peminjaman Rutin?</label>
+    </div>
+
+    <div id="rutinSection" style="display: none;">
+        <div class="form-group">
+            <label for="frekuensi">Frekuensi Peminjaman</label>
+            <select name="frekuensi" class="form-control">
+                <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="harian">Harian</option>
+                <option value="mingguan">Mingguan</option>
+                <option value="bulanan">Bulanan</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="hari_rutin">Hari Rutin</label>
+            <select name="hari_rutin" class="form-control">
+                <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="senin">Senin</option>
+                <option value="selasa">Selasa</option>
+                <option value="rabu">Rabu</option>
+                <option value="kamis">Kamis</option>
+                <option value="jumat">Jumat</option>
+                <option value="sabtu">Sabtu</option>
+                <option value="minggu">Minggu</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="waktu_mulai_rutin">Waktu Mulai Rutin</label>
+            <input type="time" name="waktu_mulai_rutin" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="waktu_selesai_rutin">Waktu Selesai Rutin</label>
+            <input type="time" name="waktu_selesai_rutin" class="form-control">
+        </div>
+    </div>
+
+
         <div class="form-group" id="gladiEndSection" style="display: none;">
             <label>Tanggal Selesai Gladi</label>
             <input type="datetime-local" name="tanggal_pengembalian_gladi" class="form-control">
@@ -119,9 +182,34 @@
 
         <button type="submit" class="btn btn-primary mt-3">Ajukan Peminjaman</button>
     </form>
+    <div class="modal fade" id="konfirmasiPeminjamanModal" tabindex="-1" aria-labelledby="konfirmasiPeminjamanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="konfirmasiPeminjamanModalLabel">Konfirmasi Data Peminjaman</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Mohon periksa kembali data peminjaman Anda sebelum mengirim:</p>
+                <ul id="konfirmasiDataList">
+                    </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="submitPeminjamanBtn">Yakin, Ajukan Peminjaman</button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <script>
+    document.getElementById('rutinCheck').addEventListener('change', function () {
+        document.getElementById('rutinSection').style.display = this.checked ? 'block' : 'none';
+    });
+
     document.getElementById('checkGladi').addEventListener('change', function () {
         document.getElementById('gladiStartSection').style.display = this.checked ? 'block' : 'none';
         document.getElementById('gladiEndSection').style.display = this.checked ? 'block' : 'none';
@@ -136,7 +224,46 @@
         if (!document.getElementById('setujuSk').checked) {
             e.preventDefault();
             alert('Anda harus menyetujui Syarat & Ketentuan sebelum mengirim formulir.');
+            return;
         }
+
+        e.preventDefault(); // Mencegah submit form secara langsung
+
+        // Ambil data formulir
+        const formData = new FormData(this);
+        const konfirmasiDataList = document.getElementById('konfirmasiDataList');
+        konfirmasiDataList.innerHTML = ''; // Kosongkan list sebelumnya
+
+        // Tampilkan data di modal
+        for (const [name, value] of formData.entries()) {
+            let label = name.replace(/_/g, ' ').replace(/\[\]/g, '').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            let displayValue = value;
+
+            if (name === 'id_ruang') {
+                label = 'Ruang';
+                displayValue = "{{ $ruang->nama_ruang }}";
+            } else if (name === 'surat_peminjaman' && value instanceof File) {
+                displayValue = value.name;
+            } else if (name === 'butuh_gladi') {
+                displayValue = value === '1' ? 'Ya' : 'Tidak';
+            } else if (name === 'rutin') {
+                displayValue = value === '1' ? 'Ya' : 'Tidak';
+            } else if (name === 'butuh_livestream') {
+                displayValue = value === '1' ? 'Ya' : 'Tidak';
+            } else if (name === 'butuh_operator') {
+                displayValue = value === '1' ? 'Ya' : 'Tidak';
+            }
+
+            konfirmasiDataList.innerHTML += `<li><strong>${label}:</strong> ${displayValue}</li>`;
+        }
+
+        // Tampilkan modal
+        $('#konfirmasiPeminjamanModal').modal('show');
+    });
+
+    // Event listener untuk tombol submit di modal
+    document.getElementById('submitPeminjamanBtn').addEventListener('click', function () {
+        document.getElementById('formPeminjaman').submit(); // Submit form setelah konfirmasi
     });
 </script>
 @endsection

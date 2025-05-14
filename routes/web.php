@@ -48,6 +48,10 @@ Route::post('reset-password', 'AuthController@reset');
 Route::get('forgot-password', 'AuthController@showLinkRequestForm');
 Route::post('forgot-password', 'AuthController@sendResetLinkEmail');
 
+// Ubah Password
+Route::get('ubah_password', 'AuthController@ubah_password');
+Route::post('update_password', 'AuthController@update_password');
+
 
 
 //NEW SECTION - STAFF --------------------------------------------------------------------------------
@@ -119,6 +123,7 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
 
     Route::get('/staff_pengembalian_ruang/form_pengembalian_gladi/{peminjaman}', 'staffController@form_pengembalian_gladi');
     Route::put('/staff_pengembalian_ruang/save_pengembalian_gladi/{peminjaman}', 'staffController@save_pengembalian_gladi');
+    Route::post('/staff_pengembalian_ruang/update_status_rutin/{sesiId}', 'staffController@update_status_rutin');
 
     //Pengembalian Perlengkapan
     Route::get('/staff_pengembalian_perlengkapan', 'staffController@staff_pengembalian_perlengkapan');
@@ -147,13 +152,13 @@ Route::group(['middleware' => ['auth', 'role:kaunit']], function () {
     Route::get('/kaunit_usulan_penghapusan/form_validasi_penghapusan/{penghapusan}', 'kaunitController@form_validasi_penghapusan');
     Route::put('/kaunit_usulan_penghapusan/save_validasi_penghapusan/{penghapusan}', 'KaunitController@save_validasi_penghapusan');
     
-    
+    Route::get('/kaunit/create_user', 'KaunitController@createUserForm');
+    Route::post('/kaunit/create_user', 'KaunitController@storeUser');
+
     //Route::get('kaunit_validasi_pengadaan', 'kaunitController@kaunit_validasi_pengadaan'); 
     //Route::get('kaunit_validasi_perbaikan', 'kaunitController@kaunit_validasi_perbaikan');
     //Route::get('kaunit_validasi_penghapusan', 'kaunitController@kaunit_validasi_penghapusan');
-    //Route::get('/kaunit/create_user', 'KaunitController@createUserForm');
-    //Route::post('/kaunit/create_user', 'KaunitController@storeUser');
-
+  
 
 });
 

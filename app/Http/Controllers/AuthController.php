@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log; // Import Log
 
 class AuthController extends Controller
 {
@@ -19,22 +20,24 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->only('username', 'password');
-
-        if (Auth::attempt($credentials)) {
+         $credentials = $request->only('username', 'password');
+         
+         if (Auth::attempt($credentials)) {
             $role = Auth::user()->role;
             switch ($role) {
-                case 'staff':
+                 case 'staff':
                     return redirect('/staff_daftar_perlengkapan');
                 case 'kaunit':
                     return redirect('/kaunit_daftar_kapel');
+                case 'volunteer':
+                    return redirect('/peminjam_beranda');
                 default:
                     return redirect('/peminjam_beranda');
+                }
             }
-        }
 
-        return redirect('/login')->withErrors(['username' => 'Kredensial tidak valid.']);
-    }
+            return redirect('/login')->withErrors(['username' => 'Kredensial tidak valid.']);
+        }
 
     public function logout()
     {
@@ -56,38 +59,43 @@ class AuthController extends Controller
             return redirect('/login')->with('error', 'Anda tidak memiliki izin untuk membuat akun pengguna.');
         }
 
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'username' => 'required|unique:users',
             'name' => 'nullable|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users',
-            'role' => 'required|in:staff,kaunit',
-            
+            'role' => 'required|in:staff,kaunit,volunteer',
         ]);
 
-        if ($validator->fails()) {
-            return redirect('/register')
-                ->withErrors($validator)
-                ->withInput();
-        }
+        // Buat Password Sementara
+        $passwordSementara = Str::random(8);
 
-        $password = Str::random(10);
+        // Membuat Pengguna Baru
         $user = User::create([
             'username' => $request->username,
             'name' => $request->name,
             'jabatan' => $request->jabatan,
             'email' => $request->email,
-            'password' => Hash::make($password),
+            'password' => Hash::make($passwordSementara),
             'role' => $request->role,
+            'reset_token' => null, // Tambahkan reset_token
         ]);
 
+        // Jika Pengguna Memiliki Email, Kirimkan Password Sementara
         if ($user->email) {
-            Mail::send('emails.new_user', ['user' => $user, 'password' => $password], function ($message) use ($user, $password) {
-                $message->to($user->email)->subject('Akun Sistem Inventaris Anda Telah Dibuat');
-            });
+            try {
+                Mail::send('emails.new_user', ['user' => $user, 'password' => $passwordSementara], function ($message) use ($user) {
+                    $message->to($user->email)->subject('Akun Sistem Inventaris Anda Telah Dibuat');
+                });
+                Log::info('Email berhasil dikirim ke: ' . $user->email); // Tambahkan log sukses
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim email ke: ' . $user->email . ' dengan error: ' . $e->getMessage()); // Tambahkan log error
+                // Opsional: Tampilkan pesan error kepada pengguna
+                return back()->with('error', 'Gagal mengirim email. Silakan hubungi administrator.');
+            }
         }
 
-        return redirect('/register')->with('success', 'Akun berhasil dibuat dan detail login telah dikirim ke email pengguna (jika ada).');
+        return redirect('/register')->with('success', 'Akun berhasil dibuat dengan password sementara.');
     }
 
     public function showLinkRequestForm()
@@ -118,14 +126,14 @@ class AuthController extends Controller
 
     public function showResetForm(string $token)
     {
-        $user = User::where('reset_token', Hash::make($token))->first();
-
+    $user = User::where('reset_token', $token)->first();
         if (!$user) {
             return redirect('/login')->withErrors(['token' => 'Token reset password tidak valid.']);
         }
 
-        return view('auth.passwords.reset')->with(['token' => $token, 'email' => $user->email]);
+        return view('auth.reset_password')->with(['token' => $token, 'email' => $user->email]);
     }
+
 
     public function reset(Request $request)
     {
@@ -142,8 +150,35 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($request->password);
-        $user->reset_token = null;
+        $user->reset_token = null; // Clear the token
         $user->save();
+
+        return redirect('/login')->with('status', 'Password Anda telah berhasil direset!');
+    }
+
+    public function ubah_password()
+    {
+    $user = Auth::user();
+        return view('ubah_password', compact('user'));
+    }
+
+    public function update_password(Request $request)
+    {
+        $request->validate([
+            'password_lama' => 'required',
+            'password_baru' => 'required|min:8|confirmed',
+        ]);
+
+        $user = Auth::user(); 
+
+        if (!Hash::check($request->password_lama, $user->password)) {
+            return back()>with('error', 'Kesalahan');
+        }
+
+        $user->password = Hash::make($request->password_baru);
+        //$user->reset_token = null; // Clear the token
+        $user->save();
+        Auth::logout();
 
         return redirect('/login')->with('status', 'Password Anda telah berhasil direset!');
     }

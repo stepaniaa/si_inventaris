@@ -4,6 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 
 class PeminjamanRuang extends Model
 {
@@ -36,7 +38,24 @@ class PeminjamanRuang extends Model
         'catatan_pengembalian',
         'catatan_staff',
         'id_pj_peminjaman',
-        'id_pj_pengembalian'
+        'id_pj_pengembalian',
+        'frekuensi',
+        'interval',
+        'tanggal_mulai_rutin',
+        'tanggal_selesai_rutin', 
+        'butuh_gladi_rutin',
+        'tanggal_mulai_gladi_rutin',
+        'tanggal_selesai_gladi_rutin',
+        'asal_unit',
+        'peran',
+        'frekuensi',
+        'hari_rutin',
+        'waktu_mulai_rutin',
+    'waktu_selesai_rutin',
+    'rutin',
+    'jadwal_rutin_json', 
+    'status_pengembalian',
+    'status_rutin',
     ];
 
     public function ruang()
@@ -53,6 +72,13 @@ class PeminjamanRuang extends Model
     {
         return $this->belongsTo(User::class, 'id_pj_pengembalian', 'id');
     }
+
+     public function peminjamanRutin()
+    {
+        return $this->hasMany(PeminjamanRutin::class);
+    }
+
+    
 
     /**
      * Scope a query to only include peminjaman yang memiliki jadwal tumpang tindih.

@@ -60,6 +60,7 @@
                                 <select id="role" class="form-control @error('role') is-invalid @enderror" name="role" required>
                                     <option value="staff" {{ old('role') == 'staff' ? 'selected' : '' }}>Staff</option>
                                     <option value="kaunit" {{ old('role') == 'kaunit' ? 'selected' : '' }}>Kepala Unit</option>
+                                    <option value="kaunit" {{ old('role') == 'volunteer' ? 'selected' : '' }}>Volunteer</option>
                                 </select>
 
                                 @error('role')

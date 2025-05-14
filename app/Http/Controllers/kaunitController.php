@@ -44,12 +44,14 @@ class kaunitController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dibuat. Email dikirim ke pengguna.');
     }
 
-    public function kaunit_daftar_perlengkapan() { 
-        return view('kaunit_daftar_perlengkapan',['key'=>'kaunit_daftar_perlengkapan']);
+    public function kaunit_daftar_kapel() { 
+        $rng = Ruang::orderby('id_ruang', 'asc')->paginate(5); 
+        return view('kaunit_daftar_kapel',['key'=>'kaunit_daftar_kapel', 'rng'=>$rng]);
     }
 
-    public function kaunit_daftar_kapel() { 
-        return view('kaunit_daftar_kapel',['key'=>'kaunit_daftar_kapel']);
+    public function kaunit_daftar_perlengkapan() { 
+        $pkp = Perlengkapan::with(['kategori', 'ruang']) ->orderBy('id_perlengkapan', 'asc')->paginate(5);
+        return view('kaunit_daftar_perlengkapan',['key'=>'kaunit_daftar_perlengkapan', 'pkp'=>$pkp]);
     }
 
     //Kelola Pengadaan
