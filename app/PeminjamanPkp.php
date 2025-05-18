@@ -31,6 +31,9 @@ class PeminjamanPkp extends Model
         'surat_peminjaman_pk',
         'status_pk',
         'status_gladi_pk',
+        'rutin',
+        'tipe_rutin',
+        'jumlah_perulangan',
         //'id_user',
     ];
 
@@ -38,6 +41,11 @@ class PeminjamanPkp extends Model
     {
         return $this->belongsToMany(Perlengkapan::class, 'peminjaman_pkp_perlengkapan', 'id_peminjaman_pkp', 'id_perlengkapan')
                     ->withPivot(['jumlah_pk', 'kondisi_awal_pk', 'kondisi_akhir_pk']);
+    }
+
+    public function sesi()
+    {
+        return $this->hasMany(SesiPkp::class, 'id_peminjaman_pkp');
     }
 
     public function user()

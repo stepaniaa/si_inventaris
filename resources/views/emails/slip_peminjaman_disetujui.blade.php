@@ -15,9 +15,6 @@
         <li><strong>Tanggal Mulai Peminjaman:</strong> {{ $peminjaman->tanggal_mulai }}</li>
         <li><strong>Tanggal Selesai Peminjaman:</strong> {{ $peminjaman->tanggal_selesai }}</li>
         <li><strong>Catatan dari staff :</strong> {{ $peminjaman->catatan_staff }}</li>
-        @if ($peminjaman->butuh_gladi)
-            <li><strong>Gladi:</strong> {{ $peminjaman->tanggal_gladi }} - {{ $peminjaman->tanggal_pengembalian_gladi }}</li>
-        @endif
 </ul>
     <p>Terima kasih telah menggunakan layanan kami.</p>
 </body>

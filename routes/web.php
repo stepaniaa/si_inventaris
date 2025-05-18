@@ -21,10 +21,10 @@ Route::get('peminjam_beranda', 'peminjamController@peminjam_beranda');
 Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapan');
 
 //peminjaman ruang / kapel
-Route::get('peminjaman_ruang', 'peminjamController@peminjaman_ruang');
-Route::get('/peminjaman_ruang/peminjaman_ruang_formadd/{id_ruang}', 'peminjamController@peminjaman_ruang_formadd');
-Route::post('/peminjaman_ruang/save_peminjaman_ruang', 'peminjamController@save_peminjaman_ruang');
-Route::get('/peminjaman_ruang/detail_peminjaman_ruang/{id_ruang}', 'peminjamController@detail_peminjaman_ruang');
+Route::get('peminjaman_kapel', 'peminjamController@peminjaman_kapel');
+Route::get('/peminjaman_kapel/peminjaman_kapel_formadd/{id_ruang}', 'peminjamController@peminjaman_kapel_formadd');
+Route::post('/peminjaman_kapel/save_peminjaman_kapel', 'peminjamController@save_peminjaman_kapel');
+Route::get('/peminjaman_kapel/detail_peminjaman_kapel/{id_ruang}', 'peminjamController@detail_peminjaman_kapel');
 
 //peminjaman perlengkapan 
 Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapan');
@@ -107,9 +107,9 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::get('/staff_usulan_penghapusan/delete_penghapusan/{id_usulan_penghapusan}', 'staffController@delete_penghapusan');
 
     //Approval Peminjaman 
-    Route::get('staff_peminjaman_ruang', 'staffController@staff_peminjaman_ruang');
-    Route::get('/staff_peminjaman_ruang/form_validasi_peminjaman_ruang/{peminjaman}', 'staffController@form_validasi_peminjaman_ruang');
-    Route::put('/staff_peminjaman_ruang/save_validasi_peminjaman_ruang/{peminjaman}', 'staffController@save_validasi_peminjaman_ruang');
+    Route::get('staff_peminjaman_kapel', 'staffController@staff_peminjaman_kapel');
+    Route::get('/staff_peminjaman_kapel/form_validasi_peminjaman_kapel/{peminjaman}', 'staffController@form_validasi_peminjaman_kapel');
+    Route::put('/staff_peminjaman_kapel/save_validasi_peminjaman_kapel/{peminjaman}', 'staffController@save_validasi_peminjaman_kapel');
 
     //Approval Perlengkapan
     Route::get('staff_peminjaman_perlengkapan', 'staffController@staff_peminjaman_perlengkapan');
@@ -117,26 +117,34 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::put('/staff_peminjaman_perlengkapan/save_validasi_peminjaman_perlengkapan/{peminjaman}', 'staffController@save_validasi_peminjaman_perlengkapan');
 
     //Pengembalian Ruang 
-    Route::get('staff_pengembalian_ruang', 'staffController@staff_pengembalian_ruang');
-    Route::get('/staff_pengembalian_ruang/form_pengembalian_ruang/{peminjaman}', 'staffController@form_pengembalian_ruang');
-    Route::put('/staff_pengembalian_ruang/save_pengembalian_ruang/{peminjaman}', 'staffController@save_pengembalian_ruang');
+    Route::get('staff_pengembalian_kapel', 'staffController@staff_pengembalian_kapel');
+    Route::get('/staff_pengembalian_kapel/form_pengembalian_kapel/{id_peminjaman_kapel}', 'staffController@form_pengembalian_kapel');
+    Route::put('/staff_pengembalian_kapel/save_pengembalian_kapel/{peminjaman}', 'staffController@save_pengembalian_kapel');
+    Route::put('/staff_pengembalian_kapel/update_status_pengembalian_kapel/{id_sesi_kapel}', 'staffController@update_status_pengembalian_kapel');
 
-    Route::get('/staff_pengembalian_ruang/form_pengembalian_gladi/{peminjaman}', 'staffController@form_pengembalian_gladi');
-    Route::put('/staff_pengembalian_ruang/save_pengembalian_gladi/{peminjaman}', 'staffController@save_pengembalian_gladi');
-    Route::post('/staff_pengembalian_ruang/update_status_rutin/{sesiId}', 'staffController@update_status_rutin');
 
     //Pengembalian Perlengkapan
-    Route::get('/staff_pengembalian_perlengkapan', 'staffController@staff_pengembalian_perlengkapan');
+    Route::get('staff_pengembalian_pkp', 'staffController@staff_pengembalian_pkp');
+    //Route::put('/sesi_pkp/{id_sesi_pkp}/status', 'staffController@ubah_status_sesi');
+
+// Tampilkan form pengembalian untuk peminjaman tertentu
+Route::get('/staff_pengembalian_pkp/form_pengembalian_pkp/{id_peminjaman_pk}', 'staffController@form_pengembalian_pkp');
+
+// Proses update status pengembalian per sesi
+Route::put('/staff_pengembalian_pkp/update_status_pengembalian_pkp/{id_sesi_pkp}', 'staffController@update_status_pengembalian_pkp');
+
+
+
 });
 
 
 
 //NEW SECTION - KEPALA UNIT ---------------------------------------------------------------------------
 Route::group(['middleware' => ['auth', 'role:kaunit']], function () {
-    Route::get('kaunit_daftar_kapel', 'KaunitController@kaunit_daftar_kapel');
+    //Route::get('kaunit_daftar_kapel', 'KaunitController@kaunit_daftar_kapel');
     Route::get('kaunit_daftar_kapel', 'kaunitController@kaunit_daftar_kapel');
     Route::get('kaunit_daftar_perlengkapan', 'kaunitController@kaunit_daftar_perlengkapan');
-     
+    Route::get('kaunit_daftar_user', 'kaunitController@kaunit_daftar_user');
     // Kelola Approval Usulan Pengadaan
     Route::get('kaunit_usulan_pengadaan', 'kaunitController@kaunit_usulan_pengadaan');
     Route::get('/kaunit_usulan_pengadaan/form_validasi_pengadaan/{pengadaan}', 'kaunitController@form_validasi_pengadaan');
@@ -154,10 +162,6 @@ Route::group(['middleware' => ['auth', 'role:kaunit']], function () {
     
     Route::get('/kaunit/create_user', 'KaunitController@createUserForm');
     Route::post('/kaunit/create_user', 'KaunitController@storeUser');
-
-    //Route::get('kaunit_validasi_pengadaan', 'kaunitController@kaunit_validasi_pengadaan'); 
-    //Route::get('kaunit_validasi_perbaikan', 'kaunitController@kaunit_validasi_perbaikan');
-    //Route::get('kaunit_validasi_penghapusan', 'kaunitController@kaunit_validasi_penghapusan');
   
 
 });

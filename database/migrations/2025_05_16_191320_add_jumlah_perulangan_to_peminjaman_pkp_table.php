@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddRutinToPeminjamanRuang extends Migration
+class AddJumlahPerulanganToPeminjamanPkpTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddRutinToPeminjamanRuang extends Migration
      */
     public function up()
     {
-        Schema::table('peminjaman_ruang', function (Blueprint $table) {
-            $table->boolean('rutin')->default(false);
+        Schema::table('peminjaman_pkp', function (Blueprint $table) {
+             $table->integer('jumlah_perulangan')->nullable();
         });
     }
 
@@ -25,7 +25,7 @@ class AddRutinToPeminjamanRuang extends Migration
      */
     public function down()
     {
-        Schema::table('peminjaman_ruang', function (Blueprint $table) {
+        Schema::table('peminjaman_pkp', function (Blueprint $table) {
             //
         });
     }

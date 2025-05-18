@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddAsalUnitDanPeranToPeminjamanRuangTable extends Migration
+class AddRutinTipeRutinToPeminjamanPkpTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class AddAsalUnitDanPeranToPeminjamanRuangTable extends Migration
      */
     public function up()
     {
-        Schema::table('peminjaman_ruang', function (Blueprint $table) {
-            $table->string('asal_unit')->nullable(); 
-            $table->string('peran')->nullable(); 
+        Schema::table('peminjaman_pkp', function (Blueprint $table) {
+             $table->boolean('rutin')->default(false);
+             $table->enum('tipe_rutin', ['mingguan', 'bulanan'])->nullable();
         });
     }
 
@@ -26,8 +26,8 @@ class AddAsalUnitDanPeranToPeminjamanRuangTable extends Migration
      */
     public function down()
     {
-        Schema::table('peminjaman_ruang', function (Blueprint $table) {
-            $table->dropColumn(['asal_unit', 'peran']);
+        Schema::table('peminjaman_pkp', function (Blueprint $table) {
+            //
         });
     }
 }

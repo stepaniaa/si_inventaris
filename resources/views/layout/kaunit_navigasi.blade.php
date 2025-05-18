@@ -19,6 +19,7 @@
 }
 </style>
 <div class="nav flex-column nav-pills mt-4 sidebar-dark" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <a class="nav-link {{$key=='kaunit_daftar_user'?'active':''}}" href="/kaunit_daftar_user">Daftar User</a>
               <a class="nav-link {{$key=='kaunit_daftar_kapel'?'active':''}}" href="/kaunit_daftar_kapel">Daftar Kapel</a>
               <a class="nav-link {{$key=='kaunit_daftar_perlengkapan'?'active':''}}" href="/kaunit_daftar_perlengkapan">Daftar Perlengkapan</a>
               <a class="nav-link {{$key=='kaunit_usulan_pengadaan'?'active':''}}" href="/kaunit_usulan_pengadaan">Approve Pengadaan</a>

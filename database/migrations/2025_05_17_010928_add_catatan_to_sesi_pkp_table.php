@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddStatusCatatanToPeminjamanRuangTable extends Migration
+class AddCatatanToSesiPkpTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddStatusCatatanToPeminjamanRuangTable extends Migration
      */
     public function up()
     {
-        Schema::table('peminjaman_ruang', function (Blueprint $table) {
-            $table->text('catatan_staff')->nullable();
+        Schema::table('sesi_pkp', function (Blueprint $table) {
+             $table->string('catatan')->nullable();
         });
     }
 
@@ -25,6 +25,8 @@ class AddStatusCatatanToPeminjamanRuangTable extends Migration
      */
     public function down()
     {
-       
+        Schema::table('sesi_pkp', function (Blueprint $table) {
+            $table->dropColumn('catatan');
+        });
     }
 }

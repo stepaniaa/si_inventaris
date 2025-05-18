@@ -1,0 +1,36 @@
+@php
+use Carbon\Carbon;
+@endphp
+
+@extends('layout.staff_main')
+@section('title', 'Form Pengembalian Peminjaman')
+
+@section('content')
+<div class="container mt-4">
+    <h3>Pengembalian Peminjaman: {{ $peminjaman->peminjaman->nama_kegiatan_pk }}</h3>
+    <p>Peminjam: {{ $peminjaman->peminjaman->nama_peminjam_pk }}</p>
+
+    <div class="card mb-3 p-3">
+        <strong>Sesi: {{ Carbon::parse($peminjaman->tanggal_mulai_sesi)->format('d M Y') }} - {{ Carbon::parse($peminjaman->tanggal_selesai_sesi)->format('d M Y') }}</strong><br>
+        <form action="/staff_pengembalian_pkp/update_status_pengembalian_pkp/{{ $peminjaman->id_sesi_pkp }}" method="POST">
+            @csrf
+            @method('PUT')
+
+            <label>Status Pengembalian:</label>
+            <select name="status_pengembalian" onchange="this.form.submit()">
+                <option value="belum" {{ $peminjaman->status_pengembalian == 'belum' ? 'selected' : '' }}>Belum</option>
+                <option value="sudah" {{ $peminjaman->status_pengembalian == 'sudah' ? 'selected' : '' }}>Sudah</option>
+                <option value="bermasalah" {{ $peminjaman->status_pengembalian == 'bermasalah' ? 'selected' : '' }}>Bermasalah</option>
+            </select>
+
+            @if($peminjaman->status_pengembalian == 'sudah')
+                <small class="text-success">Dikembalikan pada {{ Carbon::parse($peminjaman->tanggal_pengembalian_sesi)->format('d M Y H:i') }}</small>
+            @elseif($peminjaman->status_pengembalian == 'bermasalah')
+                <small class="text-danger">Perlu tindak lanjut</small>
+            @endif
+        </form>
+    </div>
+
+    <a href="{{ url()->previous() }}" class="btn btn-secondary mt-3">Kembali</a>
+</div>
+@endsection

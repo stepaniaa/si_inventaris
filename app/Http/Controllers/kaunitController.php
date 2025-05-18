@@ -44,6 +44,11 @@ class kaunitController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dibuat. Email dikirim ke pengguna.');
     }
 
+    public function kaunit_daftar_user() { 
+        $usr = User::orderby('id', 'asc')->paginate(5); 
+        return view('kaunit_daftar_user',['key'=>'kaunit_daftar_user', 'usr'=>$usr]);
+    }
+
     public function kaunit_daftar_kapel() { 
         $rng = Ruang::orderby('id_ruang', 'asc')->paginate(5); 
         return view('kaunit_daftar_kapel',['key'=>'kaunit_daftar_kapel', 'rng'=>$rng]);
