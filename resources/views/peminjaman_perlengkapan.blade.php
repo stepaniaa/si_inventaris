@@ -37,7 +37,7 @@
                                     <td>{{ $index + 1 }}</td> {{-- Menggunakan small --}}
                                     <td>{{ $item->kode_perlengkapan }}</td> {{-- Menggunakan small --}}
                                     <td>{{ $item->nama_perlengkapan }}</td> {{-- Menggunakan small --}}
-                                    <td>{{ $item->stok }}</td> {{-- Menggunakan small --}}
+                                    <td>{{ $item->stok_perlengkapan }}</td> {{-- Menggunakan small --}}
                                     <td>{{ $item->status_saat_ini }}</td> {{-- Menggunakan small --}}
                                     <td class="text-center"> {{-- Menengahkan tombol --}}
                                         <button class="btn btn-success btn-sm py-0 px-1" {{-- Mengurangi padding tombol --}}
@@ -70,31 +70,6 @@
                         <button type="submit" class="btn btn-primary btn-sm w-100 py-1" {{ count(session('id_perlengkapan_dipilih', [])) > 0 ? '' : 'disabled' }}>Selanjutnya</button> {{-- Menggunakan btn-sm dan mengurangi padding tombol --}}
                     </form>
                 </div>
-            </div>
-        </div>
-
-        {{-- Peminjaman Yang Akan Datang --}}
-        <div class="col-md-4 mt-2"> {{-- Mengurangi margin atas --}}
-            <div class="border rounded p-2"> {{-- Mengurangi padding --}}
-                <small class="fw-bold">Peminjaman Yang Akan Datang</small> {{-- Menggunakan small dan fw-bold untuk judul --}}
-                @forelse ($peminjamanPerKelompok as $peminjaman)
-                    <div class="card p-2 mb-2"> {{-- Mengurangi padding card dan margin bawah --}}
-                        <small><strong>Peminjaman ID:</strong> {{ $peminjaman['id_peminjaman_pkp'] ?? 'N/A' }}</small><br> {{-- Menggunakan small --}}
-                        <small><strong>Nama Peminjam:</strong> {{ $peminjaman['nama_peminjam_pk'] ?? '' }}</small><br> {{-- Menggunakan small --}}
-                        <small><strong>Tanggal Peminjaman:</strong>
-                        {{ isset($peminjaman['tanggal_mulai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_mulai_pk'])->format('d-M-Y H:i') : '' }} -
-                        {{ isset($peminjaman['tanggal_selesai_pk']) ? \Carbon\Carbon::parse($peminjaman['tanggal_selesai_pk'])->format('H:i') : '' }}</small><br> {{-- Menggunakan small dan format tanggal lebih ringkas --}}
-                        <small><strong>Kegiatan:</strong> {{ $peminjaman['nama_kegiatan_pk'] ?? '' }}</small><br> {{-- Menggunakan small --}}
-                        <small><strong>Perlengkapan:</strong></small> {{-- Menggunakan small --}}
-                        <ul class="mb-0 pl-3"> {{-- Mengurangi margin bawah ul dan memberikan padding kiri --}}
-                            @foreach ($peminjaman['perlengkapan'] as $perlengkapan)
-                                <li><small>{{ $perlengkapan }}</small></li> {{-- Menggunakan small --}}
-                            @endforeach
-                        </ul>
-                    </div>
-                @empty
-                    <small><p class="mb-0">Belum ada peminjaman yang disetujui.</p></small> {{-- Menggunakan small dan mengurangi margin bawah --}}
-                @endforelse
             </div>
         </div>
 

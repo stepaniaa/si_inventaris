@@ -17,6 +17,15 @@
             </div>
         @endif
 
+        {{-- Daftar Perlengkapan Dipilih --}}
+        <div class="form-group">
+            <label>Perlengkapan:</label><br>
+            @foreach ($perlengkapan as $item)
+                <input type="hidden" name="id_perlengkapan[]" value="{{ $item->id_perlengkapan }}">
+                {{ $item->nama_perlengkapan }}<br>
+            @endforeach
+        </div>
+
         <div class="form-group">
             <label>Nomor Induk:</label>
             <input type="text" class="form-control" name="nomor_induk_pk" required>
@@ -42,80 +51,42 @@
             <textarea class="form-control" name="keterangan_kegiatan_pk"></textarea>
         </div>
 
-        {{-- Opsi Peminjaman Rutin --}}
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" value="1" id="rutinCheck" name="rutin" onchange="toggleRutin()">
-            <label class="form-check-label" for="rutinCheck">Peminjaman Rutin?</label>
-        </div>
-
-        <div id="opsiRutin" style="display: none;">
-            <div class="mb-2">
-                <label class="form-label">Tipe Rutin</label>
-                <select name="tipe_rutin" class="form-select">
-                    <option value="mingguan">Mingguan</option>
-                    <option value="bulanan">Bulanan</option>
-                </select>
-            </div>
-            <div class="mb-2">
-                <label class="form-label">Jumlah Perulangan</label>
-                <input type="number" class="form-control" name="jumlah_perulangan" min="1">
-            </div>
-            <div class="mb-2">
-                <label class="form-label">Tanggal Mulai Sesi Pertama</label>
-                <input type="date" name="tanggal_sesi_awal[mulai]" class="form-control">
-            </div>
-            <div class="mb-2">
-                <label class="form-label">Tanggal Selesai Sesi Pertama</label>
-                <input type="date" name="tanggal_sesi_awal[selesai]" class="form-control">
-            </div>
-        </div>
-
-        {{-- Daftar Perlengkapan Dipilih --}}
         <div class="form-group">
-            <label>Perlengkapan:</label><br>
-            @foreach ($perlengkapan as $item)
-                <input type="hidden" name="id_perlengkapan[]" value="{{ $item->id_perlengkapan }}">
-                {{ $item->nama_perlengkapan }}<br>
-            @endforeach
+        <label>Tanggal & Waktu Mulai Peminjaman</label>
+        <input type="datetime-local" name="tanggal_sesi_awal[mulai]" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Tanggal & Waktu Selesai Peminjaman</label>
+        <input type="datetime-local" name="tanggal_sesi_awal[selesai]" class="form-control">
+    </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" name="rutin" value="1" id="rutinCheck" class="form-check-input" {{ old('rutin') ? 'checked' : '' }}>
+            <label class="form-check-label" for="rutinCheck">Peminjaman Rutin? (Opsional)</label>
         </div>
+       <div id="rutinSection" style="display:none; margin-top: 1rem;">
+    <div class="form-group">
+        <label>Tipe Rutin</label>
+        <select name="tipe_rutin" class="form-control">
+            <option value="" disabled selected>-- Pilih Tipe Rutin --</option>
+            <option value="mingguan">Mingguan</option>
+            <option value="bulanan">Bulanan</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Jumlah Perulangan</label>
+        <input type="number" name="jumlah_perulangan" class="form-control" min="1" value="1">
+    </div>
+</div>
 
         <div class="form-group">
-            <label>Tanggal Mulai:</label>
-            <input type="datetime-local" class="form-control" name="tanggal_mulai_pk" required>
-        </div>
-        <div class="form-group">
-            <label>Tanggal Selesai:</label>
-            <input type="datetime-local" class="form-control" name="tanggal_selesai_pk" required>
-        </div>
-
-        <div class="form-group">
-            <label>Butuh Gladi:</label>
-            <input type="checkbox" name="butuh_gladi_pk" value="1">
-        </div>
-        <div class="form-group">
-            <label>Tanggal Gladi:</label>
-            <input type="datetime-local" class="form-control" name="tanggal_gladi_pk">
-        </div>
-        <div class="form-group">
-            <label>Tanggal Selesai Gladi:</label>
-            <input type="datetime-local" class="form-control" name="tanggal_selesai_gladi_pk">
-        </div>
-
-        <div class="form-group">
-            <label>Butuh Livestream:</label>
+            <label>Butuh Livestream ? (Opsional)</label>
             <input type="checkbox" name="butuh_livestream_pk" value="1">
         </div>
+
         <div class="form-group">
-            <label>Butuh Operator:</label>
+            <label>Butuh Operator ? (Opsional)</label>
             <input type="checkbox" name="butuh_operator_pk" value="1">
-        </div>
-        <div class="form-group">
-            <label>Operator Sound:</label>
-            <input type="text" class="form-control" name="operator_sound_pk">
-        </div>
-        <div class="form-group">
-            <label>Operator Live:</label>
-            <input type="text" class="form-control" name="operator_live_pk">
         </div>
 
         <div class="form-group">
@@ -128,9 +99,9 @@
 </div>
 
 <script>
-    function toggleRutin() {
-        document.getElementById('opsiRutin').style.display = document.getElementById('rutinCheck').checked ? 'block' : 'none';
-    }
+    document.getElementById('rutinCheck').addEventListener('change', function () {
+        document.getElementById('rutinSection').style.display = this.checked ? 'block' : 'none';
+    });
 </script>
 @endsection
 

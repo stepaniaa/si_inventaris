@@ -20,7 +20,7 @@ class SlipPeminjamanRuangDisetujui extends Mailable
 
     public function build()
     {
-        return $this->subject('Slip Peminjaman Ruang Anda Disetujui')
+        return $this->subject('LPKKSK UKDW - Informasi Permintaan Peminjaman Kapel')
                     ->view('emails.slip_peminjaman_disetujui');
     }
 }

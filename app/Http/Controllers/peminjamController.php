@@ -34,16 +34,18 @@ class peminjamController extends Controller
 
     $jadwal = [];
 
-    foreach ($peminjamanDisetujui as $k) {
-        if ($k->ruang) {
-            $jadwal[] = [
-                'nama_kegiatan' => $k->nama_kegiatan,
-                'tanggal' => $k->tanggal_mulai,
-                'waktu_selesai' => $k->tanggal_selesai,
-                'kapel' => $k->ruang->nama_ruang,
-            ];
+    foreach ($peminjamanDisetujui as $peminjaman) {
+            if ($peminjaman->ruang) {
+                foreach ($peminjaman->sesi as $sesi) {
+                    $jadwal[] = [
+                        'nama_kegiatan' => $peminjaman->nama_kegiatan,
+                        'tanggal' => Carbon::parse($sesi->tanggal_mulai_sesi)->format('Y-m-d H:i:s'),
+                        'waktu_selesai' => Carbon::parse($sesi->tanggal_selesai_sesi)->format('Y-m-d H:i:s'),
+                        'kapel' => $peminjaman->ruang->nama_ruang,
+                    ];
+                }
+            }
         }
-    }
 
     // Urutkan jadwal berdasarkan tanggal mulai
     if (is_array($jadwal) && count($jadwal) > 1) {
@@ -198,7 +200,7 @@ class peminjamController extends Controller
 
             DB::commit();
 
-            return redirect('peminjaman_kapel')->with('success', 'Peminjaman ruang berhasil disimpan.');
+            return redirect('peminjaman_kapel')->with('success', 'Sukses! Detail pengajuan dan info persetujuan segera dikirim melalui email Anda.');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -232,64 +234,19 @@ class peminjamController extends Controller
     //-----------------------------------------------------------------------------------------------------]
     //Peminjaman Perlengkapan 
     public function peminjaman_perlengkapan() {
-    $perlengkapan = Perlengkapan::all();
+    $perlengkapan = Perlengkapan::where('status_perlengkapan', 'aktif')->get();
 
     // Tambahkan status saat ini ke setiap perlengkapan
-    foreach ($perlengkapan as $item) {
-        // Cek apakah perlengkapan sedang dipinjam pada hari ini dengan status disetujui
-        $sedangDipinjam = PeminjamanPkp::whereHas('perlengkapan', function ($query) use ($item) {
-            $query->where('perlengkapan.id_perlengkapan', $item->id_perlengkapan);
-        })
-            ->where('status_pk', 'disetujui')
-            ->where(function ($query) {
-                $query->whereDate('tanggal_mulai_pk', '<=', now())
-                    ->whereDate('tanggal_selesai_pk', '>=', now());
-            })
-            ->exists();
-
-        $item->status_saat_ini = $sedangDipinjam ? 'Dipinjam' : 'Tersedia';
-    }
 
     // Ambil semua peminjaman yang disetujui
-    $peminjamanDisetujui = PeminjamanPkp::where('status_pk', 'disetujui')->get();
+    
 
-    // Inisialisasi variabel jadwal dan peminjamanPerKelompok sebagai array kosong
-    $jadwal = [];
-    $peminjamanPerKelompok = [];
-
-    // Buat array jadwal berdasarkan peminjaman dan perlengkapan terkait
-    foreach ($peminjamanDisetujui as $p) {
-        foreach ($p->perlengkapan as $perlengkapanItem) {
-            $jadwal[] = [
-                'nama_kegiatan_pk' => $p->nama_kegiatan_pk,
-                'tanggal_pk' => $p->tanggal_mulai_pk,
-                'waktu_selesai_pk' => $p->tanggal_selesai_pk,
-                'jenis_pk' => 'Pelaksanaan',
-                'perlengkapan' => $perlengkapanItem->nama_perlengkapan,
-            ];
-        }
-
-        // Tambahkan jadwal untuk sesi gladi jika ada
-        if ($p->butuh_gladi_pk && $p->tanggal_gladi_pk && $p->tanggal_selesai_gladi_pk) {
-            foreach ($p->perlengkapan as $perlengkapanItem) {
-                $jadwal[] = [
-                    'nama_kegiatan_pk' => $p->nama_kegiatan_pk . ' (Gladi)',
-                    'tanggal_pk' => $p->tanggal_gladi_pk,
-                    'waktu_selesai_pk' => $p->tanggal_selesai_gladi_pk,
-                    'jenis_pk' => 'Gladi',
-                    'perlengkapan' => $perlengkapanItem->nama_perlengkapan,
-                ];
-            }
-        }
-    }
+    // Inisialisasi variabel jadwal dan peminjamanPerKelompok sebagai array koson
 
     // Urutkan jadwal berdasarkan tanggal mulai
-    if (is_array($jadwal) && count($jadwal) > 1) {
-        usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_pk']) - strtotime($b['tanggal_pk']));
-    }
 
     // Kirim data ke view
-    return view('peminjaman_perlengkapan', compact('perlengkapan', 'peminjamanPerKelompok'));
+    return view('peminjaman_perlengkapan', compact('perlengkapan'));
 }
 
     public function peminjaman_perlengkapan_formadd()
@@ -315,21 +272,14 @@ class peminjamController extends Controller
         'keterangan_kegiatan_pk' => 'nullable|string',
         'id_perlengkapan' => 'required|array',
         'id_perlengkapan.*' => 'exists:perlengkapan,id_perlengkapan',
-        'tanggal_mulai_pk' => 'required|date',
-        'tanggal_selesai_pk' => 'required|date|after_or_equal:tanggal_mulai_pk',
-        'butuh_gladi_pk' => 'nullable|boolean',
-        'tanggal_gladi_pk' => 'nullable|date',
-        'tanggal_selesai_gladi_pk' => 'nullable|date|after_or_equal:tanggal_gladi_pk',
         'butuh_livestream_pk' => 'nullable|boolean',
         'butuh_operator_pk' => 'nullable|boolean',
-        'operator_sound_pk' => 'nullable|string|max:100',
-        'operator_live_pk' => 'nullable|string|max:100',
         'surat_peminjaman_pk' => 'nullable|file|mimes:pdf|max:2048',
         'rutin' => 'nullable|boolean',
         'tipe_rutin' => 'required_if:rutin,1|in:mingguan,bulanan',
         'jumlah_perulangan' => 'required_if:rutin,1|integer|min:1',
-        'tanggal_sesi_awal.mulai' => 'required_if:rutin,1|date',
-        'tanggal_sesi_awal.selesai' => 'required_if:rutin,1|date|after_or_equal:tanggal_sesi_awal.mulai',
+        'tanggal_sesi_awal.mulai' => 'required|date',
+        'tanggal_sesi_awal.selesai' => 'required|date|after_or_equal:tanggal_sesi_awal.mulai',
     ]);
 
     if ($validator->fails()) {
@@ -339,6 +289,10 @@ class peminjamController extends Controller
 
     DB::beginTransaction();
     try {
+        // Parsing tanggal mulai dan selesai sebelum digunakan
+        $tanggalMulaiAwal = Carbon::parse($request->input('tanggal_sesi_awal.mulai'));
+        $tanggalSelesaiAwal = Carbon::parse($request->input('tanggal_sesi_awal.selesai'));
+
         $filename = null;
         if ($request->hasFile('surat_peminjaman_pk')) {
             $file = $request->file('surat_peminjaman_pk');
@@ -350,13 +304,12 @@ class peminjamController extends Controller
             \Log::info('Tidak ada file surat peminjaman yang diupload.');
         }
 
-        $isRutin = $request->boolean('rutin');
-        \Log::info('Peminjaman rutin: ' . ($isRutin ? 'Ya' : 'Tidak'));
+        $isRutin = $request->boolean('rutin', false);
+        $jumlahPerulangan = $isRutin ? (int)$request->jumlah_perulangan : 1;
+        $tipeRutin = $isRutin ? $request->tipe_rutin : null;
+        $idPerlengkapanDipilih = $request->input('id_perlengkapan');
 
-        // Inisialisasi status
-        $status_pk = 'diproses';
-        $status_gladi = ($request->butuh_gladi_pk ?? false) ? 'belum' : 'tidak_ada_gladi';
-
+        // Buat peminjaman terlebih dahulu
         $peminjaman = PeminjamanPkp::create([
             'nomor_induk_pk' => $request->nomor_induk_pk,
             'nama_peminjam_pk' => $request->nama_peminjam_pk,
@@ -364,53 +317,80 @@ class peminjamController extends Controller
             'email_pk' => $request->email_pk,
             'nama_kegiatan_pk' => $request->nama_kegiatan_pk,
             'keterangan_kegiatan_pk' => $request->keterangan_kegiatan_pk,
-            'tanggal_mulai_pk' => $request->tanggal_mulai_pk,
-            'tanggal_selesai_pk' => $request->tanggal_selesai_pk,
-            'butuh_gladi_pk' => $request->butuh_gladi_pk ?? false,
-            'tanggal_gladi_pk' => $request->tanggal_gladi_pk,
-            'tanggal_selesai_gladi_pk' => $request->tanggal_selesai_gladi_pk,
             'butuh_livestream_pk' => $request->butuh_livestream_pk ?? false,
             'butuh_operator_pk' => $request->butuh_operator_pk ?? false,
-            'operator_sound_pk' => $request->operator_sound_pk,
-            'operator_live_pk' => $request->operator_live_pk,
             'surat_peminjaman_pk' => $filename,
-            'status_pk' => $status_pk,
-            'status_gladi_pk' => $status_gladi,
+            'status_pk' => 'diproses',
             'rutin' => $isRutin,
-            'tipe_rutin' => $request->tipe_rutin,
-            'jumlah_perulangan' => $request->jumlah_perulangan,
+            'tipe_rutin' => $tipeRutin,
+            'jumlah_perulangan' => $isRutin ? $jumlahPerulangan : null,
         ]);
-        \Log::info('Peminjaman berhasil dibuat dengan ID: ' . $peminjaman->id_peminjaman_pkp);
 
-        $peminjaman->perlengkapan()->attach($request->id_perlengkapan);
-        \Log::info('Perlengkapan diattach ke peminjaman.');
+        // Attach perlengkapan many-to-many
+        $peminjaman->perlengkapan()->attach($idPerlengkapanDipilih);
 
-        if ($isRutin) {
-            $start = Carbon::parse($request->input('tanggal_sesi_awal.mulai'));
-            $end = Carbon::parse($request->input('tanggal_sesi_awal.selesai'));
-            for ($i = 0; $i < $request->jumlah_perulangan; $i++) {
-                $peminjaman->sesi()->create([
-                    'tanggal_mulai_sesi' => $start->copy(),
-                    'tanggal_selesai_sesi' => $end->copy(),
-                ]);
-                \Log::info("Sesi rutin ke-" . ($i + 1) . " dibuat dari {$start->toDateString()} sampai {$end->toDateString()}");
-                if ($request->tipe_rutin === 'mingguan') {
-                    $start->addWeek();
-                    $end->addWeek();
-                } elseif ($request->tipe_rutin === 'bulanan') {
-                    $start->addMonth();
-                    $end->addMonth();
+        for ($i = 0; $i < $jumlahPerulangan; $i++) {
+            // Hitung tanggal sesi berdasarkan tipe rutin
+            if ($isRutin) {
+                if ($tipeRutin === 'mingguan') {
+                    $tanggalMulaiSesi = $tanggalMulaiAwal->copy()->addWeeks($i);
+                    $tanggalSelesaiSesi = $tanggalSelesaiAwal->copy()->addWeeks($i);
+                } elseif ($tipeRutin === 'bulanan') {
+                    $tanggalMulaiSesi = $tanggalMulaiAwal->copy()->addMonths($i);
+                    $tanggalSelesaiSesi = $tanggalSelesaiAwal->copy()->addMonths($i);
+                } else {
+                    // fallback jika tipe rutin tidak sesuai
+                    $tanggalMulaiSesi = $tanggalMulaiAwal->copy();
+                    $tanggalSelesaiSesi = $tanggalSelesaiAwal->copy();
+                }
+            } else {
+                $tanggalMulaiSesi = $tanggalMulaiAwal->copy();
+                $tanggalSelesaiSesi = $tanggalSelesaiAwal->copy();
+            }
+
+            // Cek bentrok untuk setiap perlengkapan di sesi ini
+            foreach ($idPerlengkapanDipilih as $idPerlengkapan) {
+                $overlap = SesiPkp::whereHas('peminjaman', function ($q) use ($idPerlengkapan) {
+                    $q->whereHas('perlengkapan', function ($q2) use ($idPerlengkapan) {
+                        $q2->where('perlengkapan.id_perlengkapan', $idPerlengkapan);
+                    });
+                    $q->where('status_pk', 'disetujui');
+                })
+                ->where('status_pengembalian', 'belum')
+                ->where(function ($q) use ($tanggalMulaiSesi, $tanggalSelesaiSesi) {
+                    $q->whereBetween('tanggal_mulai_sesi', [$tanggalMulaiSesi, $tanggalSelesaiSesi])
+                      ->orWhereBetween('tanggal_selesai_sesi', [$tanggalMulaiSesi, $tanggalSelesaiSesi])
+                      ->orWhere(function ($q2) use ($tanggalMulaiSesi, $tanggalSelesaiSesi) {
+                          $q2->where('tanggal_mulai_sesi', '<=', $tanggalMulaiSesi)
+                             ->where('tanggal_selesai_sesi', '>=', $tanggalSelesaiSesi);
+                      });
+                })
+                ->exists();
+
+                if ($overlap) {
+                    DB::rollback();
+                    return back()->withErrors(['error' => "Perlengkapan dengan ID {$idPerlengkapan} tidak tersedia pada tanggal yang Anda inginkan. Mohon cek jadwal agar tidak bentrok."])->withInput();
                 }
             }
+
+            // Simpan sesi peminjaman
+            $peminjaman->sesi()->create([
+                'tanggal_mulai_sesi' => $tanggalMulaiSesi,
+                'tanggal_selesai_sesi' => $tanggalSelesaiSesi,
+                'status_pengembalian' => 'belum',
+            ]);
+
+            \Log::info('Sesi peminjaman berhasil dibuat untuk tanggal ' . $tanggalMulaiSesi->toDateTimeString() . ' sampai ' . $tanggalSelesaiSesi->toDateTimeString());
         }
 
         DB::commit();
         \Log::info('Peminjaman berhasil disimpan dan transaksi selesai.');
-        return redirect()->back()->with('success', 'Peminjaman berhasil disimpan.');
+
+        return redirect('peminjaman_perlengkapan')->with('success', 'Sukses! Detail pengajuan dan info persetujuan segera dikirim melalui email Anda.');
     } catch (\Exception $e) {
         DB::rollback();
         \Log::error('Terjadi kesalahan saat menyimpan peminjaman: ' . $e->getMessage());
-        return redirect()->back()->withErrors(['error' => 'Gagal menyimpan peminjaman.'])->withInput();
+        return redirect('peminjaman_perlengkapan')->withErrors(['error' => 'Gagal menyimpan peminjaman: ' . $e->getMessage()])->withInput();
     }
 }
 

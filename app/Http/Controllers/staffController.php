@@ -182,6 +182,7 @@ class staffController extends Controller
                 'foto_perlengkapan' => $fotoPath,
                 'id_ruang' => $request->id_ruang,
                 'id_kategori' => $request->id_kategori,
+                'status_perlengkapan' => 'aktif', // Set nilai default di sini
             ]);
         
             return redirect('staff_daftar_perlengkapan')->with('success', 'Data perlengkapan berhasil ditambahkan.');
@@ -230,6 +231,7 @@ class staffController extends Controller
         $pkp->deskripsi_perlengkapan = $request->deskripsi_perlengkapan;
         $pkp->id_ruang = $request->id_ruang;
         $pkp->id_kategori = $request->id_kategori;
+        $pkp->status_perlengkapan = $request->status_perlengkapan;
         $pkp->save();
 
         return redirect('staff_daftar_perlengkapan')->with('success', 'Data perlengkapan berhasil diubah.');
@@ -492,7 +494,7 @@ class staffController extends Controller
     //Pengelolaan peminjaman
     public function staff_peminjaman_kapel()
     {
-        $peminjamans = PeminjamanKapel::with('ruang')->orderBy('id_peminjaman_kapel', 'desc')->paginate(10);
+        $peminjamans = PeminjamanKapel::with(['ruang', 'sesi'])->orderBy('id_peminjaman_kapel', 'desc')->paginate(10);
         return view('staff_peminjaman_kapel', [
             'key' => 'staff_peminjaman_kapel',
             'peminjamans' => $peminjamans
@@ -543,7 +545,7 @@ public function staff_peminjaman_perlengkapan()
     ]);
 }
 
-public function form_validasi_peminjaman_perlengkapan(PeminjamanKapel $peminjaman)
+public function form_validasi_peminjaman_perlengkapan(PeminjamanPkp $peminjaman)
 {
     return view('form_validasi_peminjaman_perlengkapan', [
         'key' => 'form_validasi_peminjaman_perlengkapan',
@@ -565,233 +567,28 @@ public function save_validasi_peminjaman_perlengkapan(Request $request, Peminjam
             'status_pk' => $request->status_pk,
             'catatan_peminjaman_pk' => $request->catatan_peminjaman_pk,
             'id_pj_pengembalian_pk' => Auth::id(),
-            'status_gladi_pk' => $peminjaman->butuh_gladi_pk
-                ? ($request->status_pk === 'disetujui' ? 'belum' : 'ditolak')
-                : 'tidak_ada_gladi',
+
         ]);
 
         // Jika ditolak, kembalikan stok
-        if ($request->status_pk === 'ditolak') {
-            foreach ($peminjaman->perlengkapan as $item) {
-                $item->stok_perlengkapan += 1;
-                $item->save();
-            }
-        }
 
         DB::commit();
 
-        try {
-            Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
+         try {
+                Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
+            } catch (\Exception $e) {
+                Log::error('Gagal kirim email slip peminjaman perlengkapan: ' . $e->getMessage());
+                return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
+            }
+
+            return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+
         } catch (\Exception $e) {
-            Log::error('Gagal kirim email: ' . $e->getMessage());
-            return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
-        }
-        return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
-
-        if (Mail::failures()) {
-    dd(Mail::failures()); // Cetak informasi error
-} else {
-    echo "Email berhasil dikirim!";
-}
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error validasi peminjaman perlengkapan: ' . $e->getMessage());
-        return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat memproses.']);
-    }
-}
-
-public function staff_pengembalian_ruang(Request $request)
-{
-    $now = now();
-    $belumDikembalikan = collect();
-    $sudahDikembalikan = collect();
-
-    // Peminjaman non-rutin yang belum dikembalikan
-    $ruangBelum = PeminjamanRuang::with('ruang')
-        ->where('rutin', false)
-        ->where('status', 'disetujui')
-        ->whereNull('tanggal_pengembalian')
-        ->get()
-        ->map(function ($item) {
-            $item->jenis = 'peminjaman';
-            $item->status_pengembalian = 'Belum Dikembalikan';
-            $item->status_sesi_rutin = 'belum'; // Tambahkan properti ini
-            return $item;
-        });
-    $belumDikembalikan = $belumDikembalikan->merge($ruangBelum);
-
-    // Peminjaman rutin (tampilkan setiap sesi secara terpisah)
-    $rutin = PeminjamanRuang::with('ruang')
-        ->where('rutin', true)
-        ->where('status', 'disetujui')
-        ->get();
-
-    foreach ($rutin as $peminjamanRutin) {
-    if ($peminjamanRutin->jadwal_rutin_json) {
-        $jadwal = json_decode($peminjamanRutin->jadwal_rutin_json, true);
-        if (isset($jadwal['dates']) && is_array($jadwal['dates'])) {
-            foreach ($jadwal['dates'] as $sesi) {
-                $tanggalMulaiSesi = \Carbon\Carbon::parse($sesi['tanggal'] . ' ' . $sesi['waktu_mulai']);
-                $tanggalSelesaiSesi = \Carbon\Carbon::parse($sesi['tanggal'] . ' ' . $sesi['waktu_selesai']);
-
-                $sesiData = (object) [
-                    'id_peminjaman_ruang' => $peminjamanRutin->id_peminjaman_ruang . '_' . str_replace('-', '', $sesi['tanggal']),
-                    'nomor_induk' => $peminjamanRutin->nomor_induk,
-                    'ruang' => $peminjamanRutin->ruang,
-                    'nama_kegiatan' => $peminjamanRutin->nama_kegiatan,
-                    'jenis' => 'rutin',
-                    'tanggal_mulai' => $tanggalMulaiSesi,
-                    'tanggal_selesai' => $tanggalSelesaiSesi,
-                    'status_sesi_rutin' => $sesi['status_pengembalian'] ?? 'belum_dikembalikan',
-                    'status_pengembalian' => $sesi['status_pengembalian'] === 'sudah_dikembalikan' ? 'Sudah Dikembalikan (Rutin)' : 'Belum Dikembalikan (Rutin)',
-                    'tanggal_pengembalian' => $sesi['tanggal_pengembalian'],
-                    'peminjaman_rutin_id' => $peminjamanRutin->id_peminjaman_ruang,
-                    'rutin' => true,
-                    'pjPengembalian' => $peminjamanRutin->pjPengembalian,
-                ];
-
-                if ($request->status_rutin === 'selesai') {
-    $sesi['status_pengembalian'] = 'sudah_dikembalikan';
-    $sesi['tanggal_pengembalian'] = now();
-} else {
-    $sesi['status_pengembalian'] = 'belum_dikembalikan'; // atau biarkan tetap seperti request jika perlu
-    $sesi['tanggal_pengembalian'] = null;
-}
-
-            }
+            DB::rollBack();
+            Log::error('Error validasi peminjaman perlengkapan: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan saat memproses.']);
         }
     }
-}
-
-    // Peminjaman non-rutin yang sudah dikembalikan
-    $ruangSelesai = PeminjamanRuang::with('ruang', 'pjPengembalian')
-        ->where('rutin', false)
-        ->whereNotNull('tanggal_pengembalian')
-        ->get()
-        ->map(function ($item) {
-            $item->jenis = 'peminjaman';
-            $item->status_pengembalian = 'Dikembalikan';
-            $item->status_sesi_rutin = 'selesai'; // Tambahkan properti ini
-            return $item;
-        });
-    $sudahDikembalikan = $sudahDikembalikan->merge($ruangSelesai);
-
-    return view('staff_pengembalian_ruang', [
-    'belum_dikembalikan' => $belumDikembalikan,
-    'sudah_dikembalikan' => $sudahDikembalikan,
-    'key' => 'pengembalian'
-]);
-}
-
-public function update_status_rutin(Request $request, $sesiId)
-    {
-         $request->validate([
-        'status_rutin' => 'required|in:aktif,selesai,masalah',
-    ]);
-
-    // Pecah $sesiId menjadi id_peminjaman_ruang dan tanggal
-    $parts = explode('_', $sesiId);
-    if (count($parts) !== 2) {
-        return back()->with('error', 'ID sesi tidak valid.');
-    }
-    $peminjamanRutinId = $parts[0];
-    $tanggalSesi = Carbon::parse($parts[1])->toDateString();
-
-    // Cari data peminjaman rutin berdasarkan ID
-    $peminjamanRutin = PeminjamanRuang::findOrFail($peminjamanRutinId);
-
-    // Periksa apakah kolom jadwal_rutin_json ada dan tidak kosong
-    if ($peminjamanRutin->jadwal_rutin_json) {
-        // Decode string JSON menjadi array PHP
-        $jadwal = json_decode($peminjamanRutin->jadwal_rutin_json, true);
-
-        // Pastikan struktur 'dates' ada dan merupakan array
-        if (isset($jadwal['dates']) && is_array($jadwal['dates'])) {
-            $updated = false;
-            // Loop melalui setiap sesi dalam array 'dates'
-            foreach ($jadwal['dates'] as &$sesi) {
-                // Jika tanggal sesi sesuai dengan tanggal yang ingin diupdate
-                if ($sesi['tanggal'] === $tanggalSesi) {
-                    // Update status sesi dengan nilai dari request
-                    $sesi['status_pengembalian'] = $request->status_rutin; // Ubah ini untuk status pengembalian
-                    if ($request->status_rutin === 'selesai') {
-                        $sesi['tanggal_pengembalian'] = now(); // Set tanggal pengembalian saat status selesai
-                    } else {
-                        $sesi['tanggal_pengembalian'] = null; // Reset tanggal pengembalian jika status bukan selesai
-                    }
-                    $updated = true;
-                    break; // Keluar dari loop setelah menemukan sesi yang cocok
-                }
-            }
-
-            // Jika ada sesi yang diupdate
-            if ($updated) {
-                // Encode kembali array PHP menjadi string JSON
-                $peminjamanRutin->update(['jadwal_rutin_json' => json_encode($jadwal)]);
-                return back()->with('success', 'Status pengembalian sesi rutin berhasil diperbarui.');
-            } else {
-                return back()->with('error', 'Sesi rutin dengan tanggal tersebut tidak ditemukan.');
-            }
-        } else {
-            return back()->with('error', 'Struktur jadwal rutin tidak valid.');
-        }
-    } else {
-        return back()->with('error', 'Data jadwal rutin tidak ditemukan.');
-    }
-}
-
-public function form_pengembalian_ruang(PeminjamanRuang $peminjaman)
-{
-    return view('form_pengembalian_ruang', [
-        'key' => 'form_pengembalian_ruang',
-        'peminjaman' => $peminjaman,
-    ]);
-}
-
-public function form_pengembalian_gladi(PeminjamanRuang $peminjaman)
-{
-    return view('form_pengembalian_gladi', [
-        'key' => 'form_pengembalian_gladi',
-        'peminjaman' => $peminjaman,
-    ]);
-}
-
-public function save_pengembalian_ruang(Request $request, PeminjamanRuang $peminjaman)
-{
-    $request->validate([
-        'tanggal_pengembalian' => 'required|date',
-        'catatan_pengembalian' => 'nullable|string|max:1000',
-    ]);
-
-    $peminjaman->update([
-        'tanggal_pengembalian' => $request->tanggal_pengembalian,
-        'catatan_pengembalian' => $request->catatan_pengembalian,
-        'status' => 'selesai',
-        'id_pj_pengembalian' =>  Auth::id(), // bisa juga pakai ->id atau ->email
-    ]);
-
-    return redirect('staff_pengembalian_ruang')->with('success', 'Pengembalian ruang berhasil dicatat.');
-}
-
-public function save_pengembalian_gladi(Request $request, $id_peminjaman_ruang)
-{
-    $request->validate([
-        'pengembalian_gladi_aktual' => 'required|date',
-    ]);
-
-    $peminjaman = PeminjamanRuang::findOrFail($id_peminjaman_ruang);
-    $peminjaman->pengembalian_gladi_aktual = $request->pengembalian_gladi_aktual;
-    $peminjaman->status_gladi = 'selesai';
-    $peminjaman->id_pj_pengembalian = Auth::id();
-    
-    $peminjaman->save();
-
-    return redirect('staff_pengembalian_ruang')->with('success', 'Pengembalian gladi berhasil disimpan.');
-}
-
-
-
 
 ////////////////////////////////////////////////PENGEMBALIAN PERLENGKAPAN???////
 

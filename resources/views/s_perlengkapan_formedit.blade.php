@@ -66,6 +66,15 @@
                 </select>
             </div>
 
+                        <div class="form-group">
+                <label>Status Perlengkapan</label>
+                <select class="form-control" name="status_perlengkapan" required>
+                    <option value="">Pilih Status</option>
+                    <option value="aktif" {{ $pkp->status_perlengkapan == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="tidak aktif" {{ $pkp->status_perlengkapan == 'tidak aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label>Deskripsi Perlengkapan</label>
                 <input type="text" name="deskripsi_perlengkapan" class="form-control" value="{{ $pkp->deskripsi_perlengkapan }}">

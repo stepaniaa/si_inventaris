@@ -21,14 +21,11 @@
                 <th>Perlengkapan</th>
                 <th>Nama Kegiatan</th>
                 <th>Keterangan Kegiatan</th>
-                <th>Tanggal Peminjaman</th>
+                <th>Tanggal Mulai</th>
+                <th>Tanggal Selesai</th>
                 <th>Status</th>
-                <th>Butuh Gladi</th>
-                <th>Tanggal Gladi</th>
-                <th>Tanggal Selesai Gladi</th>
                 <th>Butuh Livestream</th>
                 <th>Butuh Operator</th>
-                <th>Operator Sound</th>
                 <th>Catatan Peminjaman</th>
                 <th>Aksi</th>
             </tr>
@@ -49,24 +46,24 @@
 </td>
                 <td>{{ $p->nama_kegiatan_pk }}</td>
                 <td>{{ $p->keterangan_kegiatan_pk }}</td>
-                <td>{{ $p->tanggal_mulai_pk }} - {{ $p->tanggal_selesai_pk }}</td>
+                <td>{{ $p->sesi->first()->tanggal_mulai_sesi ?? '-' }}</td>
+                <td>{{ $p->sesi->first()->tanggal_selesai_sesi ?? '-' }}</td>
                 <td>{{ ucfirst($p->status_pk) }}</td> 
-                <td>{{ $p->butuh_gladi_pk ? 'Ya' : 'Tidak' }}</td>
-                <td>{{ $p->tanggal_gladi_pk ?? '-' }}</td>
-                <td>{{ $p->tanggal_selesai_gladi_pk ?? '-' }}</td>
                 <td>{{ $p->butuh_livestream_pk ? 'Ya' : 'Tidak' }}</td>
                 <td>{{ $p->butuh_operator_pk ? 'Ya' : 'Tidak' }}</td>
-                <td>{{ $p->operator_sound_pk ?? '-' }}</td>
                 <td>{{ $p->catatan_peminjaman_pk ?? '-' }}</td>
                 <td>
-                <a href="/staff_peminjaman_perlengkapan/form_validasi_peminjaman_perlengkapan/{{ $p->id_peminjaman_pkp }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
+                @if ($p->status_pk === 'diproses')
+                        <a href="/staff_peminjaman_perlengkapan/form_validasi_peminjaman_perlengkapan/{{ $p->id_peminjaman_pkp }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
+                    @else
+                        <button class="btn btn-secondary btn-sm" disabled>Sudah Divalidasi</button>
+                    @endif
                 </td>
             </tr>
             @endforeach
         </tbody>
     </table>
 </div>
-
     {{ $peminjamans->links() }}
 </div>
 @endsection

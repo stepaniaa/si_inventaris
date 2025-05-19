@@ -24,13 +24,12 @@ use Carbon\Carbon;
             </select>
 
             @if($peminjaman->status_pengembalian == 'sudah')
-                <small class="text-success">Dikembalikan pada {{ Carbon::parse($peminjaman->tanggal_pengembalian_sesi)->format('d M Y H:i') }}</small>
+                <small class="text-success">Dikembalikan pada {{ Carbon::parse($peminjaman->tanggal_pengembalian_sesi)->format('Y-m-d H:i:s') }}</small>
             @elseif($peminjaman->status_pengembalian == 'bermasalah')
                 <small class="text-danger">Perlu tindak lanjut</small>
             @endif
         </form>
     </div>
-
     <a href="{{ url()->previous() }}" class="btn btn-secondary mt-3">Kembali</a>
 </div>
 @endsection

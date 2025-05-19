@@ -36,8 +36,8 @@ use Carbon\Carbon;
     <td>{{ $sesi->peminjaman->nomor_induk_pk }}</td>
     <td>{{ $sesi->peminjaman->nama_peminjam_pk }}</td>
     <td>{{ $sesi->peminjaman->nama_kegiatan_pk }}</td>
-    <td>{{ Carbon::parse($sesi->tanggal_mulai_sesi)->format('d-M-Y') }}</td>
-    <td>{{ Carbon::parse($sesi->tanggal_selesai_sesi)->format('d-M-Y') }}</td>
+    <td>{{ Carbon::parse($sesi->tanggal_mulai_sesi)->format('Y-m-d H:i:s') }}</td>
+    <td>{{ Carbon::parse($sesi->tanggal_selesai_sesi)->format('Y-m-d H:i:s') }}</td>
     <td>
         <span class="badge badge-warning">Belum Dikembalikan</span>
     </td>
@@ -77,7 +77,7 @@ use Carbon\Carbon;
     <td>{{ $sesi->peminjaman->nomor_induk_pk }}</td>
     <td>{{ $sesi->peminjaman->nama_peminjam_pk }}</td>
     <td>{{ $sesi->peminjaman->nama_kegiatan_pk }}</td>
-    <td>{{ Carbon::parse($sesi->tanggal_pengembalian_sesi)->format('d-M-Y') ?? '-' }}</td>
+    <td>{{ Carbon::parse($sesi->tanggal_pengembalian_sesi)->format('Y-m-d H:i:s') ?? '-' }}</td>
     <td>
         <span class="badge badge-success">Sudah Dikembalikan</span>
     </td>

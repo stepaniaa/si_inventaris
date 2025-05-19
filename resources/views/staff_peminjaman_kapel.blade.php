@@ -59,8 +59,8 @@
                     <td>{{ $peminjaman->email }}</td>
                     <td>{{ $peminjaman->nama_kegiatan }}</td>
                     <td>{{ $peminjaman->keterangan_kegiatan ?? '-' }}</td>
-                    <td>{{ \Carbon\Carbon::parse($peminjaman->tanggal_mulai)->format('d-m-Y H:i') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($peminjaman->tanggal_selesai)->format('d-m-Y H:i') }}</td>
+                    <td>{{ $peminjaman->sesi->first()->tanggal_mulai_sesi ?? '-' }}</td>
+                    <td>{{ $peminjaman->sesi->first()->tanggal_selesai_sesi ?? '-' }}</td>
                     <td>{{ $peminjaman->rutin ? 'Ya' : 'Tidak' }}</td>
                     <td>{{ ucfirst($peminjaman->tipe_rutin) ?? '-' }}</td>
                     <td>{{ $peminjaman->jumlah_perulangan ?? '-' }}</td>
