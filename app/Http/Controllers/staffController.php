@@ -17,7 +17,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SlipPeminjamanRuangDisetujui;
-use App\Mail\SlipPeminjamanPerlengkapanDisetujui;
+use App\Mail\SlipPeminjamanKapelDitolak;
+use App\Mail\SlipPeminjamanPkpDisetujui;
+use App\Mail\SlipPeminjamanPkpDitolak;
+use App\Mail\KonfirmasiPembatalanSesiKapel;
+use App\Mail\KonfirmasiPembatalanSesiPkp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB; // Tambahkan baris ini untuk mengimpor kelas DB
 
@@ -25,7 +29,23 @@ use Illuminate\Support\Facades\DB; // Tambahkan baris ini untuk mengimpor kelas 
 class staffController extends Controller
 {
     public function staff_beranda() { 
-        return view('staff_beranda',['key'=>'staff_beranda']);
+
+         return view('staff_beranda', [
+        'jumlah_kategori' => Kategori::count(),
+        'jumlah_ruang' => Ruang::count(),
+        'jumlah_perlengkapan' => Perlengkapan::count(),
+        'jumlah_pengadaan' => Pengadaan::count(),
+        'jumlah_perbaikan' => Perbaikan::count(),
+        'jumlah_penghapusan' => Penghapusan::count(),
+        'jumlah_peminjaman_pkp' => SesiPkp::where('status_sesi', 'aktif')
+            ->where('status_pengembalian', 'belum')
+            ->count(),
+        'jumlah_peminjaman_kapel' => SesiKapel::where('status_sesi', 'aktif')
+            ->where('status_pengembalian_kp', 'belum')
+            ->count(),
+        'jumlah_peminjaman_pkp_wait' => PeminjamanPkp::where('status_pk', 'diproses')->count(),
+        'jumlah_peminjaman_kpl_wait' => PeminjamanKapel::where('status_pengajuan', 'proses')->count(),
+    ]);
     }
     
 // Pengelolaan kategori 
@@ -49,23 +69,9 @@ class staffController extends Controller
         return redirect('staff_daftar_kategori')->with('success', 'Data kategori berhasil ditambahkan.');
     }
 
-    public function s_kategori_formedit($id_perlengkapan) { 
-        $pkp = Perlengkapan::findOrFail($id_perlengkapan);
-
-    // Pastikan $pkp->tanggal_beli_perlengkapan adalah objek Carbon
-    if ($pkp->tanggal_beli_perlengkapan) {
-        $pkp->tanggal_beli_perlengkapan = Carbon::parse($pkp->tanggal_beli_perlengkapan);
-    }
-
-    $kategori = Kategori::all();
-    $ruang = Ruang::all();
-
-    return view('staff.s_perlengkapan_formedit', [
-        'key' => 'staff_daftar_perlengkapan',
-        'pkp' => $pkp,
-        'ruang' => $ruang,
-        'kategori' => $kategori,
-    ]);
+    public function s_kategori_formedit($id_kategori) { 
+        $ktg = Kategori::find($id_kategori); 
+        return view('s_kategori_formedit', ['key'=>'staff_daftar_kategori','ktg'=>$ktg]);
     
     }
 
@@ -105,6 +111,9 @@ class staffController extends Controller
             'fasilitas_ruang'=>$request->fasilitas_ruang, 
             'kapasitas_ruang'=>$request->kapasitas_ruang, 
             'deskripsi_ruang'=>$request->deskripsi_ruang, 
+            'bisa_dipinjam' => $request->bisa_dipinjam,
+            'lokasi_ruang' => $request->lokasi_ruang,
+
             
         ]);
 
@@ -122,6 +131,8 @@ class staffController extends Controller
         $rng->kapasitas_ruang = $request->kapasitas_ruang;
         $rng->fasilitas_ruang = $request->fasilitas_ruang;
         $rng->deskripsi_ruang = $request->deskripsi_ruang;
+        $rng->bisa_dipinjam = $request->bisa_dipinjam;
+        $rng->lokasi_ruang = $request->lokasi_ruang;    
         $rng->save();
 
         return redirect('staff_daftar_ruang')->with('success', 'Data kapel berhasil diubah.');
@@ -182,6 +193,7 @@ class staffController extends Controller
                 'foto_perlengkapan' => $fotoPath,
                 'id_ruang' => $request->id_ruang,
                 'id_kategori' => $request->id_kategori,
+                'bisa_dipinjam_pk' => $request->bisa_dipinjam_pk,
                 'status_perlengkapan' => 'aktif', // Set nilai default di sini
             ]);
         
@@ -231,6 +243,7 @@ class staffController extends Controller
         $pkp->deskripsi_perlengkapan = $request->deskripsi_perlengkapan;
         $pkp->id_ruang = $request->id_ruang;
         $pkp->id_kategori = $request->id_kategori;
+        $pkp->bisa_dipinjam_pk = $request->bisa_dipinjam_pk;
         $pkp->status_perlengkapan = $request->status_perlengkapan;
         $pkp->save();
 
@@ -249,7 +262,7 @@ class staffController extends Controller
         $pkp->delete();
 
         return redirect('staff_daftar_perlengkapan')->with('danger', 'Data perlengkapan berhasil dihapus.');
-    }
+    } 
 
     
 
@@ -364,20 +377,20 @@ class staffController extends Controller
 
     $request->validate([
         //'kode_perlengkapan' => 'required|string|max:50',
-        'jumlah_usulan_perbaikan' => 'required|integer|min:1',
+        //'jumlah_usulan_perbaikan' => 'required|integer|min:1',
         'alasan_perbaikan' => 'required|string|max:50',
         'estimasi_harga_perbaikan' => 'nullable|numeric|min:0',
-        'tanggal_usulan_perbaikan' => 'required|date',
+       // 'tanggal_usulan_perbaikan' => 'required|date',
         'foto_perbaikan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto sekarang opsional
         // 'tanggal_persetujuan_perbaikan' => 'nullable|date',
         // 'catatan_perbaikan_kaunit' => 'nullable|string|max:255',
     ]);
 
    // $prb->kode_perlengkapan = $request->kode_perlengkapan;
-    $prb->jumlah_usulan_perbaikan = $request->jumlah_usulan_perbaikan;
+   // $prb->jumlah_usulan_perbaikan = $request->jumlah_usulan_perbaikan;
     $prb->alasan_perbaikan = $request->alasan_perbaikan;
     $prb->estimasi_harga_perbaikan = $request->estimasi_harga_perbaikan;
-    $prb->tanggal_usulan_perbaikan = $request->tanggal_usulan_perbaikan;
+    $prb->tanggal_usulan_perbaikan = now();
     // $prb->tanggal_persetujuan_perbaikan = $request->tanggal_persetujuan_perbaikan;
     // $prb->catatan_perbaikan_kaunit = $request->catatan_perbaikan_kaunit;
 
@@ -399,12 +412,11 @@ class staffController extends Controller
 
     }
 
-    public function delete_perbaikan($id_usulan_pengadaan){ 
-        $prb = Perbaikan::findOrFail($id_usulan_perbaikan); 
+    public function delete_perbaikan($id_usulan_perbaikan) { 
+    $prb = Perbaikan::findOrFail($id_usulan_perbaikan); 
     $prb->delete();
-
     return redirect('staff_usulan_perbaikan')->with('danger', 'Usulan perbaikan berhasil dihapus.');
-    }
+}
 
     
 
@@ -494,11 +506,26 @@ class staffController extends Controller
     //Pengelolaan peminjaman
     public function staff_peminjaman_kapel()
     {
-        $peminjamans = PeminjamanKapel::with(['ruang', 'sesi'])->orderBy('id_peminjaman_kapel', 'desc')->paginate(10);
-        return view('staff_peminjaman_kapel', [
-            'key' => 'staff_peminjaman_kapel',
-            'peminjamans' => $peminjamans
-        ]);
+       $peminjamans = PeminjamanKapel::with(['ruang', 'sesi','pjPeminjaman'])
+        ->orderBy('id_peminjaman_kapel', 'desc')
+        ->paginate(10);
+
+    // Pisahkan peminjaman berdasarkan status
+    $belumDivalidasi = $peminjamans->filter(function ($peminjaman) {
+        return $peminjaman->status_pengajuan === 'proses'; // Status 'proses' berarti belum divalidasi
+    });
+
+    $sudahDivalidasi = $peminjamans->filter(function ($peminjaman) {
+        return in_array($peminjaman->status_pengajuan, ['disetujui', 'ditolak']); // Status 'diterima' atau 'ditolak' berarti sudah divalidasi
+    });
+
+
+    return view('staff_peminjaman_kapel', [
+        'key' => 'staff_peminjaman_kapel',
+        'belumDivalidasi' => $belumDivalidasi,
+        'sudahDivalidasi' => $sudahDivalidasi,
+        'peminjamans' => $peminjamans
+    ]);
     }
 
     public function form_validasi_peminjaman_kapel(PeminjamanKapel $peminjaman)
@@ -513,17 +540,25 @@ class staffController extends Controller
 {
     $request->validate([
         'status_pengajuan' => 'required|in:disetujui,ditolak',
-        //'catatan_staff' => 'nullable|string|max:1000',
+        'catatan_persetujuan_kapel' => 'nullable|string|max:1000',
     ]);
 
     $peminjaman->update([
         'status_pengajuan' => $request->status_pengajuan,
-        //'catatan_staff' => $request->catatan_staff,
+        'catatan_persetujuan_kapel' => $request->catatan_persetujuan_kapel,
         'id_pj_peminjaman' =>  Auth::id(), // bisa juga pakai ->id atau ->email
+        'tanggal_tervalidasi' => now(),
+
     ]);
 
     try {
+        if ($peminjaman->status_pengajuan === 'disetujui') {
         Mail::to($peminjaman->email)->send(new SlipPeminjamanRuangDisetujui($peminjaman));
+    } elseif ($peminjaman->status_pengajuan === 'ditolak') {
+        Mail::to($peminjaman->email)->send(new SlipPeminjamanKapelDitolak($peminjaman));
+    }
+    return redirect('staff_peminjaman_kapel')->with('success', 'Validasi berhasil dan email terkirim.');
+
     } catch (\Exception $e) {
         Log::error('Gagal kirim email: ' . $e->getMessage());
         return redirect('staff_peminjaman_kapel')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
@@ -537,12 +572,19 @@ class staffController extends Controller
 //Approval Peminjaman Perlengkapan 
 public function staff_peminjaman_perlengkapan()
 {
-      $peminjamans = PeminjamanPkp::with('perlengkapan')->orderBy('id_peminjaman_pkp', 'desc')->paginate(10);
+    $peminjamans = PeminjamanPkp::with(['perlengkapan', 'pjPeminjaman', 'sesi'])->orderBy('id_peminjaman_pkp', 'desc')->paginate(10);
 
-    return view('staff_peminjaman_perlengkapan', [
-        'key' => 'staff_peminjaman_perlengkapan',
-        'peminjamans' => $peminjamans
-    ]);
+    $belumDivalidasi = PeminjamanPkp::with(['sesi', 'perlengkapan'])
+        ->where('status_pk', 'diproses')
+        ->orderBy('id_peminjaman_pkp', 'desc')
+        ->paginate(10, ['*'], 'belum');
+
+    $sudahDivalidasi = PeminjamanPkp::with(['sesi', 'perlengkapan'])
+        ->whereIn('status_pk', ['disetujui', 'ditolak'])
+        ->orderBy('id_peminjaman_pkp', 'desc')
+        ->paginate(10, ['*'], 'sudah');
+
+    return view('staff_peminjaman_perlengkapan', compact('belumDivalidasi', 'sudahDivalidasi'));
 }
 
 public function form_validasi_peminjaman_perlengkapan(PeminjamanPkp $peminjaman)
@@ -557,7 +599,7 @@ public function save_validasi_peminjaman_perlengkapan(Request $request, Peminjam
 {
      $request->validate([
         'status_pk' => 'required|in:disetujui,ditolak,selesai',
-        'catatan_staff' => 'nullable|string|max:1000',
+        'catatan_persetujuan_pkp' => 'nullable|string|max:1000',
     ]);
 
     try {
@@ -565,23 +607,25 @@ public function save_validasi_peminjaman_perlengkapan(Request $request, Peminjam
 
         $peminjaman->update([
             'status_pk' => $request->status_pk,
-            'catatan_peminjaman_pk' => $request->catatan_peminjaman_pk,
-            'id_pj_pengembalian_pk' => Auth::id(),
+            'catatan_persetujuan_pkp' => $request->catatan_persetujuan_pkp,
+            'id_pj_peminjaman_pk' => Auth::id(),
+             'tanggal_tervalidasi' => now(),
 
         ]);
 
         // Jika ditolak, kembalikan stok
 
-        DB::commit();
+if ($peminjaman->status_pk === 'disetujui') {
+        Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPkpDisetujui($peminjaman));
+    } elseif ($peminjaman->status_pk === 'ditolak') {
+        Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPkpDitolak($peminjaman));
+    }
+ 
+    DB::commit(); // ✅ commit setelah semua proses berhasil
 
-         try {
-                Mail::to($peminjaman->email_pk)->send(new SlipPeminjamanPerlengkapanDisetujui($peminjaman));
-            } catch (\Exception $e) {
-                Log::error('Gagal kirim email slip peminjaman perlengkapan: ' . $e->getMessage());
-                return redirect('staff_peminjaman_perlengkapan')->with('error', 'Validasi berhasil, tapi email gagal dikirim.');
-            }
+    return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
 
-            return redirect('staff_peminjaman_perlengkapan')->with('success', 'Validasi berhasil dan email terkirim.');
+
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -595,31 +639,39 @@ public function save_validasi_peminjaman_perlengkapan(Request $request, Peminjam
 public function staff_pengembalian_pkp() {
 
         $belum_dikembalikan = SesiPkp::with('peminjaman')
-        ->whereIn('status_pengembalian', ['belum', 'bermasalah']) // MODIFIKASI: tambah kondisi 'bermasalah'
+        ->whereIn('status_pengembalian', ['belum', 'bermasalah'])
+        ->whereHas('peminjaman', function($query) {
+        $query->where('status_pk', 'disetujui');
+    })
+        ->where('status_sesi', '!=', 'batal') // Tambahkan kondisi untuk mengecualikan sesi yang dibatalkan
         ->get();
 
-        $sudah_dikembalikan = SesiPkp::with('peminjaman')
+
+       $sudah_dikembalikan = SesiPkp::with('peminjaman')
         ->where('status_pengembalian', 'sudah')
         ->get();
+        $dibatalkan = SesiPkp::where('status_sesi', 'batal')->get();
 
-        return view('staff_pengembalian_pkp', compact('belum_dikembalikan', 'sudah_dikembalikan'));
+        
+       //$dibatalkan = SesiPkp::where('status_sesi', 'batal')->get();
+
+    return view('staff_pengembalian_pkp', compact('belum_dikembalikan', 'sudah_dikembalikan', 'dibatalkan'));
 }
 
 public function update_status_pengembalian_pkp(Request $request, $id_sesi_pkp)
 {
     $request->validate([
         'status_pengembalian' => 'required|in:belum,sudah,bermasalah',
+        //'id_pj_pengembalian' =>  Auth::id(),
         'catatan' => 'required_if:status_pengembalian,bermasalah|string|max:255',
     ]);
 
     $sesi = SesiPkp::findOrFail($id_sesi_pkp);
     $sesi->status_pengembalian = $request->status_pengembalian;
+    $sesi->peminjaman->id_pj_pengembalian_pk = Auth::id();
 
     if ($request->status_pengembalian === 'sudah') {
         $sesi->tanggal_pengembalian_sesi = Carbon::now();
-        $sesi->catatan = null;
-    } elseif ($request->status_pengembalian === 'bermasalah') {
-        $sesi->tanggal_pengembalian_sesi = null;
         $sesi->catatan = $request->catatan;
     } else {
         // status 'belum' atau lainnya
@@ -639,6 +691,50 @@ public function form_pengembalian_pkp($id_sesi_pkp)
     return view('form_pengembalian_pkp', compact('peminjaman'));
 }
 
+public function batalkan_sesi_pkp(Request $request, $id_sesi_pkp)
+    {
+        $sesi = SesiPkp::findOrFail($id_sesi_pkp);
+
+        // Pastikan status sesi adalah 'aktif' agar bisa dibatalkan
+        if ($sesi->status_sesi === 'batal') {
+            return back()->with('error', 'Sesi ini sudah dibatalkan.');
+        }
+
+        // Validasi alasan pembatalan
+        $request->validate([
+            'alasan_dibatalkan' => 'required|string|max:1000',
+        ]);
+        Log::info('Alasan pembatalan diterima: ' . $request->input('alasan_dibatalkan'));
+
+        DB::beginTransaction();
+
+        try {
+            // Ubah status sesi menjadi batal dan simpan alasan pembatalan
+        $sesi->status_sesi = 'batal';
+        $sesi->alasan_dibatalkan = $request->input('alasan_dibatalkan');
+        $sesi->save();
+
+        Log::info('Status sesi ID ' . $id_sesi_pkp . ' berhasil diperbarui menjadi batal.');
+
+        // Kirim email konfirmasi pembatalan
+        Mail::to($sesi->peminjaman->email_pk)->send(new KonfirmasiPembatalanSesiPkp($sesi));
+        Log::info('Email konfirmasi pembatalan terkirim ke: ' . $sesi->peminjaman->email_pk);
+
+        DB::commit();
+        Log::info('Proses pembatalan sesi ID ' . $id_sesi_pkp . ' selesai dengan sukses.');
+
+        return back()->with('success', 'Sesi berhasil dibatalkan dan email konfirmasi telah dikirim.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Gagal membatalkan sesi ID ' . $id_sesi_pkp . ': ' . $e->getMessage());
+
+        return back()->with('error', 'Gagal membatalkan sesi: ' . $e->getMessage());
+    }
+}
+
+
+
 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -649,35 +745,39 @@ public function staff_pengembalian_kapel() {
     ->whereHas('peminjaman', function($query) {
         $query->where('status_pengajuan', 'disetujui');
     })
-    ->get();
+        ->where('status_sesi', '!=', 'batal') // Tambahkan kondisi untuk mengecualikan sesi yang dibatalkan
+        ->get();
 
         $sudah_dikembalikan = SesiKapel::with('peminjaman')
         ->where('status_pengembalian_kp', 'sudah')
         ->get();
+        $dibatalkan = SesiKapel::where('status_sesi', 'batal')->get();
 
-        return view('staff_pengembalian_kapel', compact('belum_dikembalikan', 'sudah_dikembalikan'));
+
+        return view('staff_pengembalian_kapel', compact('belum_dikembalikan', 'sudah_dikembalikan', 'dibatalkan'));
 }
 
 public function update_status_pengembalian_kapel(Request $request, $id_sesi_kapel)
 {
+     Log::info('STATUS: ' . $request->status_pengembalian_kp);
+    Log::info('FULL REQUEST: ', $request->all());
     $request->validate([
         'status_pengembalian_kp' => 'required|in:belum,sudah,bermasalah',
+        //'id_pj_pengembalian' =>  Auth::id(), // bisa juga pakai ->id atau ->email
         'catatan_kp' => 'required_if:status_pengembalian_kp,bermasalah|string|max:255',
     ]);
 
     $sesi = SesiKapel::findOrFail($id_sesi_kapel);
     $sesi->status_pengembalian_kp = $request->status_pengembalian_kp;
+    $sesi->peminjaman->id_pj_pengembalian = Auth::id();
 
     if ($request->status_pengembalian_kp === 'sudah') {
         $sesi->tanggal_pengembalian_sesi_kp = Carbon::now();
-        $sesi->catatan_kp = null;
-    } elseif ($request->status_pengembalian_kp === 'bermasalah') {
-        $sesi->tanggal_pengembalian_sesi_kp = null;
-        $sesi->catatan_kp = $request->catatan;
+        $sesi->catatan_kp = $request->catatan_kp;
     } else {
         // status 'belum' atau lainnya
-        $sesi->tanggal_pengembalian_sesi_kp = null;
-        $sesi->catatanKp = null;
+    $sesi->tanggal_pengembalian_sesi_kp = null;
+      $sesi->catatan_kp = null;
     }
 
     $sesi->save();
@@ -692,67 +792,75 @@ public function form_pengembalian_kapel($id_sesi_kapel)
     return view('form_pengembalian_kapel', compact('peminjaman'));
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-public function ubahStatusSesi(Request $request, $id_sesi_pkp)
+public function batalkan_sesi_kapel(Request $request, $id_sesi_kapel)
     {
-        $request->validate([
-            'status' => 'required|in:belum,sudah,bermasalah',
-        ]);
+        $sesi = SesiKapel::findOrFail($id_sesi_kapel);
 
-        $sesi = SesiPeminjamanPkp::findOrFail($id_sesi_pkp);
-        $sesi->status_pengembalian = $request->status;
-
-        if ($request->status === 'sudah') {
-            $sesi->tanggal_pengembalian_sesi = now();
-        } else {
-            $sesi->tanggal_pengembalian_sesi = null;
+        // Pastikan status sesi adalah 'aktif' agar bisa dibatalkan
+        if ($sesi->status_sesi === 'batal') {
+            return back()->with('error', 'Sesi ini sudah dibatalkan.');
         }
 
+        // Validasi alasan pembatalan
+        $request->validate([
+            'alasan_dibatalkan' => 'required|string|max:1000',
+        ]);
+        Log::info('Alasan pembatalan diterima: ' . $request->input('alasan_dibatalkan'));
+
+        DB::beginTransaction();
+
+        try {
+            // Ubah status sesi menjadi batal dan simpan alasan pembatalan
+        $sesi->status_sesi = 'batal';
+        $sesi->alasan_dibatalkan = $request->input('alasan_dibatalkan');
         $sesi->save();
 
-        return back()->with('success', 'Status pengembalian diperbarui.');
+        Log::info('Status sesi ID ' . $id_sesi_kapel . ' berhasil diperbarui menjadi batal.');
+
+        // Kirim email konfirmasi pembatalan
+        Mail::to($sesi->peminjaman->email)->send(new KonfirmasiPembatalanSesiKapel($sesi));
+        Log::info('Email konfirmasi pembatalan terkirim ke: ' . $sesi->peminjaman->email);
+
+        DB::commit();
+        Log::info('Proses pembatalan sesi ID ' . $id_sesi_kapel . ' selesai dengan sukses.');
+
+        return back()->with('success', 'Sesi berhasil dibatalkan dan email konfirmasi telah dikirim.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Gagal membatalkan sesi ID ' . $id_sesi_kapel . ': ' . $e->getMessage());
+
+        return back()->with('error', 'Gagal membatalkan sesi: ' . $e->getMessage());
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

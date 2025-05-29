@@ -1,49 +1,61 @@
-@extends('layouts.app')
-
-@section('content')
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link href="{{ asset('css/login.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
 </head>
 <body>
-    <div id="login">
-        <h3 class="text-center text-white pt-5">{{ __('Login form') }}</h3>
-        <div class="container">
-            <div id="login-row" class="row justify-content-center align-items-center">
-                <div id="login-column" class="col-md-6">
-                    <div id="login-box" class="col-md-12">
-                        <form id="login-form" class="form" action="{{ route('login') }}" method="POST">
-                            @csrf
-                            <h3 class="text-center text-info">{{ __('Login') }}</h3>
-                            <div class="form-group">
-                                <label for="username" class="text-info">{{ __('Username (Nomor Induk Staff)') }}:</label><br>
-                                <input type="text" name="username" id="username" class="form-control @error('username') is-invalid @enderror" value="{{ old('username') }}" required autocomplete="username" autofocus>
-                                @error('username')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="password" class="text-info">{{ __('Password') }}:</label><br>
-                                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required autocomplete="current-password">
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="remember-me" class="text-info"><span>{{ __('Remember me') }}</span> <span><input id="remember-me" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }}></span></label><br>
-                                <input type="submit" name="submit" class="btn btn-info btn-md" value="{{ __('submit') }}">
-                            </div>
-                             <div class="text-center">
-                 <a href="/password/reset" class="inline-block text-sm text-blue-500 hover:text-blue-800">Lupa Password?</a>
+    <div class="login-card">
+        <h4 class="text-center mb-4">Login</h4>
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username"
+                    class="form-control @error('username') is-invalid @enderror"
+                    value="{{ old('username') }}" required autofocus>
+                @error('username')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
-                        </form>
-                    </div>
-                </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password"
+                    class="form-control @error('password') is-invalid @enderror"
+                    required>
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
-        </div>
+
+            <div class="form-group form-check">
+                <input type="checkbox" name="remember" class="form-check-input" id="remember"
+                    {{ old('remember') ? 'checked' : '' }}>
+                <label class="form-check-label" for="remember">Remember Me</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+
+        </form>
     </div>
 </body>
-@endsection
+</html>

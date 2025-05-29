@@ -25,6 +25,12 @@
                     <li>{{ $item->nama_perlengkapan }}</li>
                 @endforeach
             </ul>
+            <p><strong>Surat Peminjaman:</strong></p>
+                @if($peminjaman->surat_peminjaman_pk)
+    <p><a href="{{ asset('storage/surat_peminjaman_perlengkapan/' . $peminjaman->surat_peminjaman_pk) }}" target="_blank">Download Surat Peminjaman</a></p>
+@else
+    <p><em>Surat peminjaman belum diupload.</em></p>
+@endif
         </div>
     </div>
 
@@ -40,9 +46,9 @@
                 <option value="selesai">Selesai</option>
             </select>
         </div>
-        <div class="form-group mb-3">
-            <label>Catatan Staff</label>
-            <textarea name="catatan_peminjaman" class="form-control" rows="4"></textarea>
+        <div class="form-group mt-3">
+            <label for="catatan_persetujuan_pkp">Catatan (Opsional)</label>
+            <textarea name="catatan_persetujuan_pkp" id="catatan_persetujuan_pkp" class="form-control" rows="3"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Simpan Validasi</button>
     </form>

@@ -8,7 +8,7 @@
             @csrf
             <div class="form-group">
                 <label>Nama</label>
-                <input type="text" name="nama_kategori" class="form-control" placeholder="Masukkan nama kategoru">
+                <input type="text" name="nama_kategori" class="form-control" placeholder="Masukkan nama kategori">
             </div>
 
             <div class="form-group mt-4">

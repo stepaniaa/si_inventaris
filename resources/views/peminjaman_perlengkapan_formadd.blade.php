@@ -7,17 +7,25 @@
 
     <form action="{{ url('/peminjaman_perlengkapan/save_peminjaman_perlengkapan') }}" method="POST" enctype="multipart/form-data">
         @csrf
-        @if ($errors->any())
-            <div class="alert alert-danger mt-3">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+@if (session('success'))
+    <div class="alert alert-success mt-3">
+        {{ session('success') }}
+    </div>
+@endif
 
-        {{-- Daftar Perlengkapan Dipilih --}}
+@if ($errors->any())
+    <div class="alert alert-danger mt-3">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+  {{-- Daftar Perlengkapan Dipilih --}}
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Daftar Perlengkapan</strong>
         <div class="form-group">
             <label>Perlengkapan:</label><br>
             @foreach ($perlengkapan as $item)
@@ -25,6 +33,8 @@
                 {{ $item->nama_perlengkapan }}<br>
             @endforeach
         </div>
+    </div>
+</div>
 
         <div class="form-group">
             <label>Nomor Induk:</label>
@@ -46,6 +56,12 @@
             <label>Nama Kegiatan:</label>
             <input type="text" class="form-control" name="nama_kegiatan_pk" required>
         </div>
+
+        <div class="form-group">
+            <label>Lokasi Kegiatan:</label>
+            <input type="text" class="form-control" name="lokasi_kegiatan_pk" required>
+        </div>
+        
         <div class="form-group">
             <label>Keterangan Kegiatan:</label>
             <textarea class="form-control" name="keterangan_kegiatan_pk"></textarea>
@@ -79,7 +95,7 @@
     </div>
 </div>
 
-        <div class="form-group">
+        <!--<div class="form-group">
             <label>Butuh Livestream ? (Opsional)</label>
             <input type="checkbox" name="butuh_livestream_pk" value="1">
         </div>
@@ -87,7 +103,7 @@
         <div class="form-group">
             <label>Butuh Operator ? (Opsional)</label>
             <input type="checkbox" name="butuh_operator_pk" value="1">
-        </div>
+        </div>-->
 
         <div class="form-group">
             <label>Surat Peminjaman (PDF):</label>

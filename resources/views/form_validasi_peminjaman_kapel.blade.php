@@ -36,6 +36,11 @@
             @if($peminjaman->butuh_operator)
                 <p><strong>Operator Sound:</strong> {{ $peminjaman->operator_sound ?? '-' }}</p>
             @endif
+
+            @if ($peminjaman->id_ruang == 1 && $peminjaman->bukti_ukdw)
+             <p><strong>Bukti UKDW:</strong> <a href="{{ asset('storage/bukti_ukdw/' . $peminjaman->bukti_ukdw) }}" target="_blank">Lihat Bukti</a></p>
+            @endif
+            
             <p><strong>Surat Peminjaman:</strong> 
                 @if($peminjaman->surat_peminjaman)
                     <a href="{{ asset('storage/surat_peminjaman/' . $peminjaman->surat_peminjaman) }}" target="_blank">Lihat Surat</a>
@@ -58,10 +63,10 @@
             </select>
         </div>
 
-       <!-- <div class="form-group mt-3">
-            <label for="catatan_staff">Catatan Staff (Opsional)</label>
-            <textarea name="catatan_staff" id="catatan_staff" class="form-control" rows="3"></textarea>
-        </div>-->
+        <div class="form-group mt-3">
+            <label for="catatan_persetujuan_kapel">Catatan (Opsional)</label>
+            <textarea name="catatan_persetujuan_kapel" id="catatan_persetujuan_kapel" class="form-control" rows="3"></textarea>
+        </div>
 
         <button type="submit" class="btn btn-primary">Simpan Persetujuan</button>
         <a href="/staff_peminjaman_kapel" class="btn btn-secondary">Batal</a>

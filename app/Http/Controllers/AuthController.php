@@ -26,7 +26,7 @@ class AuthController extends Controller
             $role = Auth::user()->role;
             switch ($role) {
                  case 'staff':
-                    return redirect('/staff_daftar_perlengkapan');
+                    return redirect('/staff_beranda');
                 case 'kaunit':
                     return redirect('/kaunit_daftar_kapel');
                 case 'volunteer':
@@ -65,6 +65,7 @@ class AuthController extends Controller
             'jabatan' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users',
             'role' => 'required|in:staff,kaunit,volunteer',
+            'bagian' => 'nullable|string|max:255',
         ]);
 
         // Buat Password Sementara
@@ -78,6 +79,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($passwordSementara),
             'role' => $request->role,
+            'bagian' => $request->bagian,
             'reset_token' => null, // Tambahkan reset_token
         ]);
 

@@ -7,8 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class SlipPeminjamanPerlengkapanDisetujui extends Mailable
+class SlipPeminjamanPkpDisetujui extends Mailable
 {
+    use Queueable, SerializesModels;
+
     public $peminjaman;
 
     public function __construct($peminjaman)
@@ -16,9 +18,14 @@ class SlipPeminjamanPerlengkapanDisetujui extends Mailable
         $this->peminjaman = $peminjaman;
     }
 
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
     public function build()
     {
-        return $this->subject('LPKKSK UKDW - Informasi Permintaan Peminjaman Kapel')
-        ->view('emails.slip_peminjaman_perlengkapan_disetujui');
+        return $this->subject('LPKKSK UKDW - Informasi Permintaan Peminjaman Perlengkapan')
+                    ->view('emails.slip_pkp_disetujui');
     }
 }

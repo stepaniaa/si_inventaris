@@ -15,14 +15,18 @@ use Carbon\Carbon;
         <form action="/staff_pengembalian_kapel/update_status_pengembalian_kapel/{{ $peminjaman->id_sesi_kapel }}" method="POST">
             @csrf
             @method('PUT')
-
+             <div class="form-group">
+           <label for="catatan_kp" class="mt-2">Catatan Pengembalian (Isi sebelum ubah status pengembalian)</label>
+            <textarea name="catatan_kp" class="form-control" rows="3">{{ $peminjaman->catatan }}</textarea>
+  </div>
+           <div class="form-group">
             <label>Status Pengembalian:</label>
             <select name="status_pengembalian_kp" onchange="this.form.submit()">
                 <option value="belum" {{ $peminjaman->status_pengembalian_kp == 'belum' ? 'selected' : '' }}>Belum</option>
                 <option value="sudah" {{ $peminjaman->status_pengembalian_kp == 'sudah' ? 'selected' : '' }}>Sudah</option>
-                <option value="bermasalah" {{ $peminjaman->status_pengembalian_kp == 'bermasalah' ? 'selected' : '' }}>Bermasalah</option>
+               <!-- <option value="bermasalah" {{ $peminjaman->status_pengembalian_kp == 'bermasalah' ? 'selected' : '' }}>Bermasalah</option>-->
             </select>
-
+</div>
             @if($peminjaman->status_pengembalian_kp == 'sudah')
                 <small class="text-success">Dikembalikan pada {{ Carbon::parse($peminjaman->tanggal_pengembalian_sesi_kp)->format('Y-m-d H:i:s') }}</small>
             @elseif($peminjaman->status_pengembalian_kp == 'bermasalah')

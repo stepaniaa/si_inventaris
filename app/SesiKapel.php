@@ -16,6 +16,8 @@ class SesiKapel extends Model
         'status_pengembalian_kp',
         'tanggal_pengembalian_sesi_kp',
         'catatan_kp',
+        'status_sesi', 
+        'alasan_pembatalan',
     ];
 
     // Relasi ke peminjaman_kapel

@@ -1,7 +1,20 @@
-@extends('layouts.app')
-@section('content')
-<div class="container mt-4">
-    <h2>Reset Password</h2>
+{{-- ✅ MODIFIKASI: Hapus @extends dan @section --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset Password</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"> {{-- ✅ Tambahkan Bootstrap CDN --}}
+</head>
+<body> {{-- ✅ Awal body --}}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6"> {{-- ✅ Gunakan col tengah dan card --}}
+            <div class="card shadow-sm">
+                <div class="card-header text-center font-weight-bold">
+                    Reset Password
+                </div>
 
     @if (session('status'))
         <div class="alert alert-success">
@@ -40,4 +53,3 @@
         <button type="submit" class="btn btn-primary mt-3">Simpan Password</button>
     </form>
 </div>
-@endsection

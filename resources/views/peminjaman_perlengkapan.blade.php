@@ -8,10 +8,22 @@
     <div class="row">
             <div class="col-md-8">
             <div class="mb-3"> {{-- Berikan margin bawah pada judul dan peringatan --}}
-                <h4 class="mb-1">Daftar Perlengkapan</h4> {{-- Kurangi margin bawah pada judul --}}
+                            @if (session('success'))
+    <div class="alert alert-success mt-2">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger mt-2">
+        {{ session('error') }}
+    </div>
+@endif
+                <h2><strong>Daftar Perlengkapan</strong></h2>
                 <p class="mb-0">
                     <small><i><b>Penting:</b> Periksa jadwal peminjaman yang akan datang untuk menghindari bentrok jadwal.</i></small> {{-- Gunakan small dan kurangi margin bawah --}}
                 </p>
+                <p class="text-warning"><strong>*Hanya bisa dipinjam oleh civitas UKDW.</strong></p>
             </div>
             <div class="card">
                 <div class="card-header py-2"> {{-- Mengurangi padding atas dan bawah header --}}
@@ -26,8 +38,8 @@
                                     <th>No</th>
                                     <th>Kode</th>
                                     <th>Nama Perlengkapan</th>
-                                    <th>Stok</th>
-                                    <th>Status Saat Ini</th>
+                                    <!--<th>Stok</th>
+                                    <th>Status Saat Ini</th>-->
                                     <th class="text-center">Aksi</th> {{-- Menengahkan teks aksi --}}
                                 </tr>
                             </thead>
@@ -37,8 +49,8 @@
                                     <td>{{ $index + 1 }}</td> {{-- Menggunakan small --}}
                                     <td>{{ $item->kode_perlengkapan }}</td> {{-- Menggunakan small --}}
                                     <td>{{ $item->nama_perlengkapan }}</td> {{-- Menggunakan small --}}
-                                    <td>{{ $item->stok_perlengkapan }}</td> {{-- Menggunakan small --}}
-                                    <td>{{ $item->status_saat_ini }}</td> {{-- Menggunakan small --}}
+                                    <!--<td>{{ $item->stok_perlengkapan }}</td> {{-- Menggunakan small --}
+                                    <td>{{ $item->status_saat_ini }}</td> {{-- Menggunakan small --}}-->
                                     <td class="text-center"> {{-- Menengahkan tombol --}}
                                         <button class="btn btn-success btn-sm py-0 px-1" {{-- Mengurangi padding tombol --}}
                                             onclick="tambahKeKeranjang('{{ $item->id_perlengkapan }}', '{{ $item->nama_perlengkapan }}')">+</button>
@@ -72,6 +84,65 @@
                 </div>
             </div>
         </div>
+
+        {{-- Daftar Peminjaman yang Akan Datang --}}
+<div class="mt-5">
+    <h4>Peminjaman Yang Akan Datang</h4>
+
+    {{-- Filter --}}
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        <input type="text" id="filterBarang" placeholder="Filter kode/nama barang" class="form-control" onkeyup="filterTable()" >
+
+        <input type="month" id="filterBulan" class="form-control" onchange="filterTable()">
+    </div>
+
+    @if($peminjamansAkanDatang->isEmpty())
+        <p>Tidak ada peminjaman yang akan datang</p>
+    @else
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="peminjamanTable">
+                <thead>
+                    <tr>
+                         <th>ID Peminjaman</th>
+                        <th>Nama Kegiatan</th>
+                        <th>Perlengkapan</th>
+                        <th>Tanggal Mulai Sesi</th>
+                        <th>Tanggal Selesai Sesi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($peminjamansAkanDatang as $p)
+                        @foreach($p->sesi as $sesi)
+                            <tr>
+                                <td>{{ $p->id_peminjaman_pkp }}</td>
+                                <td>{{ $p->nama_kegiatan_pk }}</td>
+                               
+                                <td>
+                                    @foreach($p->perlengkapan as $item)
+                                        <div data-kode="{{ $item->kode_perlengkapan ?? '' }}">
+                                            {{ $item->nama_perlengkapan }} ({{ $item->kode_perlengkapan ?? '-' }})
+                                        </div>
+                                    @endforeach
+                                </td>
+                                <td>{{ \Carbon\Carbon::parse($sesi->tanggal_mulai_sesi)->format('Y-m-d H:i') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($sesi->tanggal_selesai_sesi)->format('Y-m-d H:i') }}</td>
+                            </tr>
+                        @endforeach
+                    @endforeach
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-center mt-2">
+    {{ $peminjamansAkanDatang->links() }}
+</div>
+            
+        </div>
+        
+        
+    @endif
+</div>
+
+
+
 
     </div>
 </div>
@@ -133,6 +204,42 @@
         const selanjutnyaButton = document.querySelector('button[type="submit"]');
         if (selanjutnyaButton) {
             selanjutnyaButton.disabled = perlengkapanDipilih.length === 0;
+        }
+    }
+
+    function filterTable() {
+        const filterBarang = document.getElementById('filterBarang').value.toLowerCase();
+        const filterBulan = document.getElementById('filterBulan').value; // format yyyy-mm
+
+        const table = document.getElementById('peminjamanTable');
+        const tr = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < tr.length; i++) {
+            const tdPerlengkapan = tr[i].getElementsByTagName('td')[2];
+            const tdTanggalMulai = tr[i].getElementsByTagName('td')[3];
+            const tdTanggalSelesai = tr[i].getElementsByTagName('td')[4];
+
+            if (tdPerlengkapan && tdTanggalMulai && tdTanggalSelesai) {
+                const perlengkapanText = tdPerlengkapan.textContent.toLowerCase();
+                const tanggalMulai = tdTanggalMulai.textContent; // format yyyy-mm-dd
+                const tanggalSelesai = tdTanggalSelesai.textContent;
+
+                // Filter kode/nama barang (cek substring)
+                const filterBarangMatch = perlengkapanText.includes(filterBarang);
+
+                // Filter bulan
+                // Ambil bulan-tahun dari tanggal mulai dan selesai sesi (yyyy-mm)
+                const bulanMulai = tanggalMulai.slice(0, 7);
+                const bulanSelesai = tanggalSelesai.slice(0, 7);
+
+                const filterBulanMatch = !filterBulan || bulanMulai === filterBulan || bulanSelesai === filterBulan;
+
+                if (filterBarangMatch && filterBulanMatch) {
+                    tr[i].style.display = '';
+                } else {
+                    tr[i].style.display = 'none';
+                }
+            }
         }
     }
 </script>

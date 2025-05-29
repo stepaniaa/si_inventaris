@@ -62,6 +62,14 @@
             </div>
 
             <div class="form-group">
+    <label for="bisa_dipinjam_pk">Bisa Dipinjam?</label>
+    <select name="bisa_dipinjam_pk" id="bisa_dipinjam_pk" class="form-control" required>
+        <option value="ya" {{ old('bisa_dipinjam_pk', $pkp->bisa_dipinjam_pk ?? '') == 'ya' ? 'selected' : '' }}>Ya</option>
+        <option value="tidak" {{ old('bisa_dipinjam_pk', $pkp->bisa_dipinjam_pk ?? '') == 'tidak' ? 'selected' : '' }}>Tidak</option>
+    </select>
+</div>
+
+            <div class="form-group">
                 <label>Deskripsi Perlengkapan</label>
                 <input type="text" name="deskripsi_perlengkapan" class="form-control" placeholder="Masukkan deskripsi perlengkapan">
             </div>

@@ -28,10 +28,20 @@
 
         <input type="hidden" name="id_ruang" value="{{ $kapel->id_ruang }}">
 
-        <div class="form-group">
-            <label>Nomor Induk</label>
-            <input type="text" name="nomor_induk" class="form-control" required>
-        </div>
+<div class="form-group">
+    <label>
+        Nomor Identitas Mahasiswa / Pekerja UKDW (NIM / NIP)
+        @if ($kapel->id_ruang == 1)
+            <span class="text-danger">*</span>
+            <small class="text-muted">(Wajib untuk Kapel Atas)</small>
+        @else
+            <small class="text-muted">(Boleh dikosongkan untuk peminjam eksternal)</small>
+        @endif
+    </label>
+    <input type="text" name="nomor_induk" class="form-control"
+           placeholder="Masukkan NIM / NIP (jika internal UKDW)"
+           {{ $kapel->id_ruang == 1 ? 'required' : '' }}>
+</div>
 
         <div class="form-group">
             <label>Nama Peminjam</label>
@@ -42,6 +52,7 @@
              <label for="asal_unit">Asal Unit</label>
                 <select name="asal_unit" id="asal_unit" class="form-control">
                 <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="eksternal">Peminjam Eksternal (Non-UKDW)</option>
                 <option value="fti">Fakultas Teknologi Informasi</option>
                 <option value="fad">Fakultas Arsitektur dan Desain</option>
                 <option value="fb">Fakultas Bisnis</option>
@@ -52,6 +63,7 @@
              <label for="peran">Status Peminjam</label>
                 <select name="peran" id="peran" class="form-control">
                 <option value="" selected disabled>-- Pilih Opsi --</option>
+                <option value="eksternal">Pihak Eksternal (Non-UKDW)</option>
                 <option value="dosen">Dosen</option>
                 <option value="pekerja">Staff Unit</option>
                 <option value="mahasiswa">Mahasiswa</option>
@@ -63,10 +75,12 @@
             <input type="text" name="kontak" class="form-control" required>
         </div>
 
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control" required>
-        </div>
+       <div class="form-group">
+    <label>Email</label>
+    <input type="text" name="email" class="form-control" required
+           pattern="[a-zA-Z0-9._%+-]+@ukdw\.ac\.id"
+           title="Email harus menggunakan domain @ukdw.ac.id">
+</div>
 
         <div class="form-group">
             <label>Nama Kegiatan</label>
@@ -77,6 +91,11 @@
             <label>Keterangan Kegiatan</label>
             <textarea name="keterangan_kegiatan" class="form-control" required></textarea>
         </div>
+
+        <div class="form-group">
+    <label for="jumlah_kursi">Jumlah Kursi Dibutuhkan (boleh kosong jika tidak ada)</label>
+    <input type="number" name="jumlah_kursi" id="jumlah_kursi" class="form-control" min="0" value="{{ old('jumlah_kursi') }}">
+</div>
 
          <div class="form-group">
         <label>Tanggal & Waktu Mulai Peminjaman</label>
@@ -111,23 +130,30 @@
     </div>
 </div>
 
-        <div class="form-check mt-2">
-            <input type="checkbox" name="butuh_livestream" value="1" class="form-check-input" id="checkLivestream">
-            <label class="form-check-label" for="checkLivestream">Butuh Live Streaming ? (Opsional)</label>
-        </div>
+        @if ($kapel->id_ruang == 1)
+    <div class="form-check mt-2">
+        <input type="checkbox" name="butuh_livestream" value="1" class="form-check-input" id="checkLivestream">
+        <label class="form-check-label" for="checkLivestream">Butuh Live Streaming ? (Opsional)</label>
+    </div>
 
-        <div class="form-check">
-            <input type="checkbox" name="butuh_operator" value="1" class="form-check-input" id="checkOperator">
-            <label class="form-check-label" for="checkOperator">Butuh Operator ? (Opsional)</label>
-        </div>
+    <div class="form-check">
+        <input type="checkbox" name="butuh_operator" value="1" class="form-check-input" id="checkOperator">
+        <label class="form-check-label" for="checkOperator">Butuh Operator ? (Opsional)</label>
+    </div>
 
-        <div class="form-group" id="operatorSoundSection" style="display: none;">
-            <label for="operator_sound">Operator Sound (Opsional)</label>
-            <select name="operator_sound" id="operator_sound" class="form-control">
-                <option value="" selected disabled>-- Pilih Opsi --</option>
-                <option value="LPKKSK">Operator sound dari Tim PKK Live</option>
-                <option value="Penyelenggara">Operator sound dari penyelenggara kegiatan (Harus briefing terlebih dahulu)</option>
-            </select>
+    <div class="form-group" id="operatorSoundSection" style="display: none;">
+        <label for="operator_sound">Operator Sound (Opsional)</label>
+        <select name="operator_sound" id="operator_sound" class="form-control">
+            <option value="" selected disabled>-- Pilih Opsi --</option>
+            <option value="LPKKSK">Operator sound dari Tim PKK Live</option>
+            <option value="Penyelenggara">Operator sound dari penyelenggara kegiatan (Harus briefing terlebih dahulu)</option>
+        </select>
+    </div>
+@endif
+
+                <div class="form-group" id="buktiUKDWSection" style="display: none;">
+        <label for="bukti_ukdw">Upload Bukti Sebagai Mahasiswa/Dosen/Staff UKDW (KTM/NIP)</label>
+        <input type="file" name="bukti_ukdw" id="bukti_ukdw" class="form-control" accept="image/*,application/pdf">
         </div>
 
         <div class="form-check mt-3">
@@ -216,5 +242,20 @@
     document.getElementById('submitPeminjamanBtn').addEventListener('click', function () {
         document.getElementById('formPeminjaman').submit(); // Submit form setelah konfirmasi
     });
+
+    //menampilkan atribut bukti_ukdw jika peminjaman kapel atas
+    document.addEventListener('DOMContentLoaded', function () {
+    const idRuang = {{ $kapel->id_ruang }};
+    const buktiSection = document.getElementById('buktiUKDWSection');
+    const buktiInput = document.getElementById('bukti_ukdw');
+
+    if (idRuang === 1) { // ID Kapel Atas
+        buktiSection.style.display = 'block';
+        buktiInput.required = true;
+    } else {
+        buktiSection.style.display = 'none';
+        buktiInput.required = false;
+    }
+});
 </script>
 @endsection

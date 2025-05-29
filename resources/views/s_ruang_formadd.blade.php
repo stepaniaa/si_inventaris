@@ -23,6 +23,11 @@
             </div>
 
             <div class="form-group">
+                <label for="lokasi_ruang">Lokasi Ruang</label>
+                <input type="text" name="lokasi_ruang" class="form-control" placeholder="Contoh: Lantai 2 Gedung Chara">
+            </div>
+
+            <div class="form-group">
                 <label>Fasilitas Ruang</label>
                 <input type="text" name="fasilitas_ruang" class="form-control" placeholder="Masukkan fasilitas ruang">
             </div>
@@ -31,6 +36,15 @@
                 <label>Deskripsi Ruang</label>
                 <input type="text" name="deskripsi_ruang" class="form-control" placeholder="Masukkan deskripsi ruang">
             </div>
+
+            <div class="form-group">
+                <label for="bisa_dipinjam">Bisa Dipinjam</label>
+                <select name="bisa_dipinjam" class="form-control" required>
+                <option value="ya">Ya</option>
+                <option value="tidak">Tidak</option>
+                </select>
+            </div>
+
 
             
 

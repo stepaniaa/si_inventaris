@@ -14,7 +14,7 @@
         {{ session('danger') }}
     </div>
 @endif 
-
+<h4>Daftar Kategori</h4>
 <div class="card mt-4">
         <div class="card-header">
           <a href="/staff_daftar_kategori/s_kategori_formadd" class="btn btn-primary" role="button"><i class="bi bi-plus-square-fill"></i> Daftar Kategori </a>
@@ -22,16 +22,19 @@
         </div>
         <div class="card-body">
         
-          <table class="table table-hover">
+          <table class="table table-bordered">
             <thead>
               <tr>
+                 <th scope="col">No</th>
                 <th scope="col">ID</th>
                 <th scope="col">Nama Kategori</th>
+                <th scope="col">Aksi</th>
               </tr>
             </thead>
             <tbody>
               @foreach ($ktg as $idx => $k)
                 <tr>
+                  <td>{{$loop->iteration}}</td>
                   <td>{{$k->id_kategori}}</td>
                   <td>{{$k->nama_kategori}}</td>
                   <td>

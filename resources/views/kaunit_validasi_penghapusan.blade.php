@@ -1,4 +1,4 @@
-@extends('layout.kaunit_main')
+@extends('layout.staff_main')
 @section('title', 'siinventaris - Kepala Unit - Approval Usulan Penghapusan') 
 @section('kaunit_navigasi')
 @section('content')

@@ -35,6 +35,9 @@ class PeminjamanPkp extends Model
         'tipe_rutin',
         'jumlah_perulangan',
         //'id_user',
+         'catatan_persetujuan_kapel',
+         'tanggal_tervalidasi',
+         'lokasi_kegiatan_pk',
     ];
 
     public function perlengkapan(): BelongsToMany

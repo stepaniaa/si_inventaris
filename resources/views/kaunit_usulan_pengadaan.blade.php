@@ -1,4 +1,4 @@
-@extends('layout.kaunit_main')
+@extends('layout.staff_main')
 @section('title', 'Daftar Usulan Pengadaan')
 @section('content')
 <div class="card mt-4">

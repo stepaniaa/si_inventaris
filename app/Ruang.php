@@ -16,5 +16,7 @@ class Ruang extends Model
         'kapasitas_ruang', 
         'fasilitas_ruang', 
         'deskripsi_ruang', 
+        'bisa_dipinjam', 
+        'lokasi_ruang',
     ];
 }

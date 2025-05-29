@@ -30,7 +30,11 @@ class PeminjamanKapel extends Model
         'tanggal_pengembalian_1',
         'catatan_pengembalian_1',
         'id_pj_peminjaman',
-        'id_pj_pengembalian'
+        'id_pj_pengembalian',
+        'catatan_persetujuan_kapel',
+        'tanggal_tervalidasi',
+          'surat_peminjaman',
+         'bukti_ukdw',
     ];
 
     public function ruang()

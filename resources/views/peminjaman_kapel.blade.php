@@ -4,55 +4,82 @@
 @endsection
 
 @section('content')
-<div class="container-fluid px-3 py-4">
+<div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-8 border rounded p-3 mb-3">
-            <h4>Daftar Kapel</h4>
-            @if (session('success'))
-    <div class="alert alert-success mt-2">
-        {{ session('success') }}
-    </div>
-@endif
+         <div class="card p-4 mb-4">
+         <h5 class="mb-3"><strong>Daftar Kapel</strong></h5>
+        <p class="text-muted"><em><strong>Penting:</strong> Periksa jadwal peminjaman yang akan datang untuk menghindari bentrok jadwal.</em></p>
 
-@if (session('error'))
-    <div class="alert alert-danger mt-2">
-        {{ session('error') }}
-    </div>
-@endif
-            <p class="mb-4">
-                <i><b>Penting:</b> Periksa jadwal peminjaman yang akan datang untuk menghindari bentrok jadwal.</i>
-            </p>
-            <div class="row gx-4">
-                @foreach ($kapel as $k)
-                    <div class="col-md-12 mb-4"> <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ $k->nama_ruang }}</h5>
-                                <p class="card-text">
-                                    Deskripsi : {{ $k->deskripsi_ruang }}<br>
-                                    Kapasitas : {{ $k->kapasitas_ruang }}<br>
-                                </p>
-                                <a href="/peminjaman_kapel/peminjaman_kapel_formadd/{{ $k->id_ruang }}" class="btn btn-primary btn-sm">Tambah Peminjaman</a>
-                            </div>
-                        </div>
+            @if (session('success'))
+                <div class="alert alert-success mt-2">{{ session('success') }}</div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-danger mt-2">{{ session('error') }}</div>
+            @endif
+
+
+
+            <div class="row mb-4">
+        @foreach ($kapel as $k)
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm p-3" style="border-radius: 10px;">
+                <div class="d-flex align-items-center">
+                    <img src="{{ asset('images/default_kapel.jpg') }}" alt="Kapel" width="120" height="100" class="rounded me-3" style="object-fit: cover;">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1"><strong>{{ $k->nama_ruang }}</strong></h5>
+                         @if ($k->id_ruang == 1)
+                    <p class="text-warning"><strong>*Hanya bisa dipinjam oleh civitas UKDW.</strong></p>
+                @else
+                    <p class="text-success"><strong>*Bisa dipinjam oleh umum/non-UKDW.</strong></p>
+                @endif
+                        <p class="mb-0">Deskripsi : {{ $k->deskripsi_ruang ?? '-' }}</p>
+                        <p class="mb-0">Kapasitas : {{ $k->kapasitas_ruang ?? '-' }}</p>
+                        <p class="mb-0">Lokasi : {{ ucfirst($k->lokasi_ruang?? '-') }}</p>
+                        
                     </div>
-                @endforeach
+                    <div>
+                        <a href="/peminjaman_kapel/peminjaman_kapel_formadd/{{ $k->id_ruang }}" class="btn btn-primary">
+                            Ajukan Peminjaman
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+        @endforeach
+    </div>
 
-   <div class="col-md-4 border rounded p-3 mb-3">
-    <h4>Peminjaman Yang Akan Datang</h4>
-    @forelse ($jadwal as $j)
-        <div class="card p-2 mb-2">
-            <strong>{{ $j['kapel'] }}</strong> |
-            {{ \Carbon\Carbon::parse($j['tanggal'])->format('d - M - Y') }} |
-            {{ \Carbon\Carbon::parse($j['tanggal'])->format('H:i') }} -
-            {{ \Carbon\Carbon::parse($j['waktu_selesai'])->format('H:i') }}<br>
-            {{ $j['nama_kegiatan'] }}
+    {{-- TABEL PEMINJAMAN YANG AKAN DATANG --}}
+    <div class="card shadow-sm p-3 mb-5" style="border-radius: 10px;">
+        <h5 class="mb-3 text-black"><strong>Tabel Peminjaman yang Akan Datang</strong></h5>
+        @if (count($jadwal) > 0)
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Kegiatan</th>
+                        <th>Kapel</th>
+                        <th>Tanggal & Waktu Mulai</th>
+                        <th>Tanggal & Waktu Selesai</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($jadwal as $index => $j)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $j['nama_kegiatan'] }}</td>
+                        <td>{{ $j['kapel'] }}</td>
+                        <td>{{ $j['tanggal_mulai'] }}</td>
+<td>{{ $j['tanggal_selesai'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    @empty
-        <p>Belum ada peminjaman yang disetujui.</p>
-    @endforelse>
-</div>
+        @else
+            <p class="text-muted">Belum ada peminjaman yang akan datang.</p>
+        @endif
     </div>
 </div>
 @endsection

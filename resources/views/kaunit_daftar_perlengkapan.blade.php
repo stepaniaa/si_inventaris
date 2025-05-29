@@ -1,11 +1,11 @@
-@extends('layout.kaunit_main')
+@extends('layout.staff_main')
 @section('title', 'siinventaris - Kepala Unit - Daftar Perlengkapan') 
 @section('kaunit_navigasi')
 @section('content')
 
 <div class="card mt-4">
         <div class="card-header"> 
-                <h2>Daftar Perlengkapan</h2>
+                <h5>Daftar Perlengkapan</h5>
         </div>
         
 
@@ -14,6 +14,7 @@
           <table class="table table-hover">
             <thead>
               <tr>
+                <th scope="col">No </th>
                 <th scope="col">Kode </th>
                 <th scope="col">Nama </th>
                 <th scope="col">Kategori </th>
@@ -29,6 +30,7 @@
             <tbody>
               @foreach ($pkp as $idx => $p)
                 <tr>
+                  <td>{{$loop->iteration}}</td>
                   <td>{{$p->kode_perlengkapan}}</td>
                   <td>{{$p->nama_perlengkapan}}</td>
                   <td>{{ $p->kategori->nama_kategori }}</td> 

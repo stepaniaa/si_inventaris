@@ -17,7 +17,9 @@ use App\Http\Controllers\AuthController;
 */
 //SECTION - PEMINJAM ------------------------------------------------------------------------------
 // Rute untuk peminjam (akses tanpa login)
+
 Route::get('peminjam_beranda', 'peminjamController@peminjam_beranda');
+Route::get('/', 'peminjamController@peminjam_beranda');
 Route::get('peminjaman_perlengkapan', 'peminjamController@peminjaman_perlengkapan');
 
 //peminjaman ruang / kapel
@@ -55,15 +57,17 @@ Route::post('update_password', 'AuthController@update_password');
 
 
 //NEW SECTION - STAFF --------------------------------------------------------------------------------
-Route::group(['middleware' => ['auth', 'role:staff']], function () {
+Route::group(['middleware' => ['auth', 'role:staff|kaunit']], function () {
 
+    Route::get('/staff_beranda', 'staffController@staff_beranda');
+    Route::group(['middleware' => ['cekbagian:staff_keuangan_dan_pengadaan']], function () {
     //Kelola Data Kategori 
-    Route::get('/staff_daftar_kategori', 'StaffController@staff_daftar_kategori');
-    Route::get('/staff_daftar_kategori/s_kategori_formadd', 'StaffController@s_kategori_formadd');
-    Route::post('/staff_daftar_kategori/save_kategori', 'StaffController@save_kategori');
-    Route::get('/staff_daftar_kategori/s_kategori_formedit/{id_kategori}', 'StaffController@s_kategori_formedit');
-    Route::put('/staff_daftar_kategori/update_kategori/{id_kategori}', 'StaffController@update_kategori');
-    Route::get('/staff_daftar_kategori/delete_kategori/{id_kategori}', 'StaffController@delete_kategori');
+    Route::get('/staff_daftar_kategori', 'staffController@staff_daftar_kategori');
+    Route::get('/staff_daftar_kategori/s_kategori_formadd', 'staffController@s_kategori_formadd');
+    Route::post('/staff_daftar_kategori/save_kategori', 'staffController@save_kategori');
+    Route::get('/staff_daftar_kategori/s_kategori_formedit/{id_kategori}', 'staffController@s_kategori_formedit');
+    Route::put('/staff_daftar_kategori/update_kategori/{id_kategori}', 'staffController@update_kategori');
+    Route::get('/staff_daftar_kategori/delete_kategori/{id_kategori}', 'staffController@delete_kategori');
 
     //Kelola Data Kapel / Ruang 
     Route::get('staff_daftar_ruang', 'staffController@staff_daftar_ruang');
@@ -96,15 +100,16 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::post('/staff_usulan_perbaikan/save_perbaikan', 'staffController@save_perbaikan');
     Route::get('/staff_usulan_perbaikan/staff_perbaikan_formedit/{id_usulan_perbaikan}', 'staffController@staff_perbaikan_formedit');
     Route::put('/staff_usulan_perbaikan/update_perbaikan/{id_usulan_perbaikan}', 'staffController@update_perbaikan');
-    Route::get('/staff_usulan_perbaikan/delete_perbaikan/{id_usulan_perbaikan}', 'staffController@delete_perbaikan');
+    Route::delete('/staff_usulan_perbaikan/delete_perbaikan/{id_usulan_perbaikan}', 'staffController@delete_perbaikan');
 
-    //Kelola Data Usulan Penghapusan
+    //Kelola Data Usulan Penghapusanj
     Route::get('staff_usulan_penghapusan', 'staffController@staff_usulan_penghapusan');
     Route::get('/staff_usulan_penghapusan/staff_penghapusan_formadd', 'staffController@staff_penghapusan_formadd');
     Route::post('/staff_usulan_penghapusan/save_penghapusan', 'staffController@save_penghapusan');
     Route::get('/staff_usulan_penghapusan/staff_penghapusan_formedit/{id_usulan_penghapusan}', 'staffController@staff_pengadaanpenghapusan_formedit');
     Route::put('/staff_usulan_penghapusan/update_penghapusan/{id_usulan_penghapusan}', 'staffController@update_penghapusan');
     Route::get('/staff_usulan_penghapusan/delete_penghapusan/{id_usulan_penghapusan}', 'staffController@delete_penghapusan');
+      });
 
     //Approval Peminjaman 
     Route::get('staff_peminjaman_kapel', 'staffController@staff_peminjaman_kapel');
@@ -121,6 +126,8 @@ Route::group(['middleware' => ['auth', 'role:staff']], function () {
     Route::get('/staff_pengembalian_kapel/form_pengembalian_kapel/{id_peminjaman_kapel}', 'staffController@form_pengembalian_kapel');
     Route::put('/staff_pengembalian_kapel/save_pengembalian_kapel/{peminjaman}', 'staffController@save_pengembalian_kapel');
     Route::put('/staff_pengembalian_kapel/update_status_pengembalian_kapel/{id_sesi_kapel}', 'staffController@update_status_pengembalian_kapel');
+    Route::patch('/batalkan_sesi_kapel/{id_sesi_kapel}', 'staffController@batalkan_sesi_kapel');
+
 
 
     //Pengembalian Perlengkapan
@@ -132,7 +139,7 @@ Route::get('/staff_pengembalian_pkp/form_pengembalian_pkp/{id_peminjaman_pk}', '
 
 // Proses update status pengembalian per sesi
 Route::put('/staff_pengembalian_pkp/update_status_pengembalian_pkp/{id_sesi_pkp}', 'staffController@update_status_pengembalian_pkp');
-
+Route::patch('/batalkan_sesi_pkp/{id_sesi_pkp}', 'staffController@batalkan_sesi_pkp');
 
 
 });
@@ -142,6 +149,7 @@ Route::put('/staff_pengembalian_pkp/update_status_pengembalian_pkp/{id_sesi_pkp}
 //NEW SECTION - KEPALA UNIT ---------------------------------------------------------------------------
 Route::group(['middleware' => ['auth', 'role:kaunit']], function () {
     //Route::get('kaunit_daftar_kapel', 'KaunitController@kaunit_daftar_kapel');
+     Route::get('kaunit_beranda', 'kaunitController@kaunit_beranda');
     Route::get('kaunit_daftar_kapel', 'kaunitController@kaunit_daftar_kapel');
     Route::get('kaunit_daftar_perlengkapan', 'kaunitController@kaunit_daftar_perlengkapan');
     Route::get('kaunit_daftar_user', 'kaunitController@kaunit_daftar_user');
@@ -162,7 +170,7 @@ Route::group(['middleware' => ['auth', 'role:kaunit']], function () {
     
     Route::get('/kaunit/create_user', 'KaunitController@createUserForm');
     Route::post('/kaunit/create_user', 'KaunitController@storeUser');
-  
+      Route::get('/kaunit_daftar_user/delete_user/{id}', 'kaunitController@delete_user');
 
 });
 

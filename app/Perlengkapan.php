@@ -21,6 +21,9 @@ class Perlengkapan extends Model
         'foto_perlengkapan', 
         'id_ruang', 
         'id_kategori', 
+        'bisa_dipinjam_pk', 
+        'status_perlengkapan',
+
     ];
     
     public function kategori() {

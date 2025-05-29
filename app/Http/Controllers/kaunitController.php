@@ -8,7 +8,12 @@ use App\Perbaikan ;
 use App\Penghapusan ; 
 use App\User ; 
 use App\Ruang ; 
+use App\Kategori ; 
 use App\Perlengkapan ; 
+use App\PeminjamanKapel ; 
+use App\PeminjamanPkp ; 
+use App\SesiPkp ; 
+use App\SesiKapel ;
 use Illuminate\Support\Facades\Auth; 
 class kaunitController extends Controller
 {
@@ -44,9 +49,35 @@ class kaunitController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dibuat. Email dikirim ke pengguna.');
     }
 
+    public function kaunit_beranda() { 
+       return view('kaunit_beranda', [
+        'jumlah_kategori' => Kategori::count(),
+        'jumlah_ruang' => Ruang::count(),
+        'jumlah_perlengkapan' => Perlengkapan::count(),
+        'jumlah_user' => User::count(),
+        'jumlah_pengadaan' => Pengadaan::where('status_usulan_pengadaan', 'diproses')->count(),
+        'jumlah_perbaikan' => Perbaikan::where('status_usulan_perbaikan', 'diproses')->count(),
+        'jumlah_penghapusan' => Penghapusan::where('status_usulan_penghapusan', 'diproses')->count(),
+                'jumlah_peminjaman_pkp' => SesiPkp::where('status_sesi', 'aktif')
+            ->where('status_pengembalian', 'belum')
+            ->count(),
+        'jumlah_peminjaman_kapel' => SesiKapel::where('status_sesi', 'aktif')
+            ->where('status_pengembalian_kp', 'belum')
+            ->count(),
+        'jumlah_peminjaman_pkp_wait' => PeminjamanPkp::where('status_pk', 'diproses')->count(),
+        'jumlah_peminjaman_kpl_wait' => PeminjamanKapel::where('status_pengajuan', 'proses')->count(),
+    ]);
+    }
     public function kaunit_daftar_user() { 
         $usr = User::orderby('id', 'asc')->paginate(5); 
         return view('kaunit_daftar_user',['key'=>'kaunit_daftar_user', 'usr'=>$usr]);
+    }
+
+    public function delete_user($id){ 
+        $usr = User::find($id); 
+        $usr->delete();
+
+        return redirect('kaunit_daftar_user')->with('danger', 'Data user berhasil dihapus.');
     }
 
     public function kaunit_daftar_kapel() { 
