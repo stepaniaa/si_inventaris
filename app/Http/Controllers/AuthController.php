@@ -97,7 +97,7 @@ class AuthController extends Controller
             }
         }
 
-        return redirect('/register')->with('success', 'Akun berhasil dibuat dengan password sementara.');
+        return redirect('/kaunit_daftar_user')->with('success', 'Akun berhasil dibuat dengan password sementara.');
     }
 
     public function showLinkRequestForm()

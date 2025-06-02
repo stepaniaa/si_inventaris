@@ -1,5 +1,5 @@
 @extends('layout.staff_main')
-@section('title', 'siinventaris - Daftar Kapel') 
+@section('title', 'siinventaris - Daftar Ruang') 
 @section('staff_navigasi')
 @section('content')
 
@@ -14,7 +14,7 @@
         {{ session('danger') }}
     </div>
 @endif 
-<h4>Daftar Kapel</h4>
+<h4>Daftar Ruang</h4>
 <div class="card mt-4">
         <div class="card-header">
           <a href="/staff_daftar_ruang/s_ruang_formadd" class="btn btn-primary" role="button"><i class="bi bi-plus-square-fill"></i> Ruang </a>
@@ -32,7 +32,7 @@
                 <th scope="col">Fasilitas </th>
                 <th scope="col">Deskripsi </th>
                 <th scope="col">Lokasi </th>
-                <th scope="col">Bisa Dipinjam ?</th>
+                <th scope="col">Perlu pengajuan peminjaman ? </th>
                 <th scope="col">Aksi </th>
               </tr>
             </thead>

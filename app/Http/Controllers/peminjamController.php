@@ -35,16 +35,19 @@ class peminjamController extends Controller
               ->whereNotNull('status_pengembalian_kp');
     })
     ->get();
+    $jadwal = [];
 
 foreach ($peminjamanDisetujui as $peminjaman) {
     if ($peminjaman->ruang) {
         foreach ($peminjaman->sesi as $sesi) {
-            $jadwal[] = [
-                'nama_kegiatan' => $peminjaman->nama_kegiatan,
-                'tanggal_mulai' => Carbon::parse($sesi->tanggal_mulai_sesi)->translatedFormat('d F Y H:i'),
-                'tanggal_selesai' => Carbon::parse($sesi->tanggal_selesai_sesi)->translatedFormat('d F Y H:i'),
-                'kapel' => $peminjaman->ruang->nama_ruang,
-            ];
+             if ($sesi->status_sesi !== 'batal') {
+                $jadwal[] = [
+                    'nama_kegiatan' => $peminjaman->nama_kegiatan,
+                    'tanggal_mulai' => Carbon::parse($sesi->tanggal_mulai_sesi)->translatedFormat('d F Y H:i'),
+                    'tanggal_selesai' => Carbon::parse($sesi->tanggal_selesai_sesi)->translatedFormat('d F Y H:i'),
+                    'kapel' => $peminjaman->ruang->nama_ruang,
+                ];
+            }
         }
     }
 }
@@ -408,8 +411,9 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
                 ->exists();
 
                 if ($overlap) {
+                    $namaPerlengkapan = DB::table('perlengkapan')->where('id_perlengkapan', $idPerlengkapan)->value('nama_perlengkapan');
                     DB::rollback();
-                    return back()->withErrors(['error' => "Perlengkapan dengan ID {$idPerlengkapan} tidak tersedia pada tanggal yang Anda inginkan. Mohon cek jadwal agar tidak bentrok."])->withInput();
+                    return back()->withErrors(['error' => "Perlengkapan <strong>{$namaPerlengkapan}</strong> tidak tersedia pada tanggal yang Anda inginkan. Mohon cek jadwal agar tidak bentrok."])->withInput();
                 }
             }
 

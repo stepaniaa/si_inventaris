@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Request;
     <a class="nav-link {{ Request::is('staff_beranda') ? 'active' : '' }}" href="/staff_beranda">Beranda</a>
 @if($bagian === 'staff_keuangan_dan_pengadaan')
     <a class="nav-link {{ Request::is('staff_daftar_perlengkapan') ? 'active' : '' }}" href="/staff_daftar_perlengkapan">Daftar Perlengkapan</a>
-    <a class="nav-link {{ Request::is('staff_daftar_ruang') ? 'active' : '' }}" href="/staff_daftar_ruang">Daftar Kapel</a>
+    <a class="nav-link {{ Request::is('staff_daftar_ruang') ? 'active' : '' }}" href="/staff_daftar_ruang">Daftar Ruang</a>
     <a class="nav-link {{ Request::is('staff_daftar_kategori') ? 'active' : '' }}" href="/staff_daftar_kategori">Daftar Kategori</a>
 
     <h6 class="nav-header mt-2">Pengajuan</h6>

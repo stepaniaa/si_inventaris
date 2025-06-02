@@ -19,6 +19,26 @@
 
     <!-- Belum Divalidasi -->
     <h5>Daftar Pengajuan Peminjaman (Belum Divalidasi)</h5>
+     @php use Carbon\Carbon; @endphp
+@php
+$conflictMap = [];
+foreach ($belumDivalidasi as $p) {
+    $tanggal = optional($p->sesi->first())->tanggal_mulai_sesi
+        ? Carbon::parse($p->sesi->first()->tanggal_mulai_sesi)->format('Y-m-d')
+        : null;
+    $perlengkapanIds = $p->perlengkapan->pluck('id_perlengkapan')->sort()->implode(',');
+    if ($tanggal && $perlengkapanIds) {
+        $key = $perlengkapanIds . '|' . $tanggal;
+        $conflictMap[$key] = ($conflictMap[$key] ?? 0) + 1;
+    }
+}
+@endphp
+@if(collect($conflictMap)->filter(fn($v) => $v > 1)->isNotEmpty())
+<div class="alert alert-warning">
+    ⚠️ <strong>Perhatian:</strong> Ada lebih dari satu pengajuan dengan perlengkapan dan tanggal yang sama. Mohon pertimbangkan urgensi sebelum validasi.
+</div>
+@endif
+
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead>
@@ -35,8 +55,17 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($belumDivalidasi as $p)
-                <tr>
+                @foreach ($belumDivalidasi as $index => $p)
+                @php
+    $tanggal = optional($p->sesi->first())->tanggal_mulai_sesi
+        ? Carbon::parse($p->sesi->first()->tanggal_mulai_sesi)->format('Y-m-d')
+        : null;
+    $perlengkapanIds = $p->perlengkapan->pluck('id_perlengkapan')->sort()->implode(',');
+    $key = $perlengkapanIds . '|' . $tanggal;
+    $isConflict = isset($conflictMap[$key]) && $conflictMap[$key] > 1;
+@endphp
+<tr {!! isset($isConflict) && $isConflict ? 'class="table-warning" title="⚠️ Ada pengajuan lain dengan perlengkapan & tanggal yang sama!"' : '' !!}>
+
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $p->id_peminjaman_pkp }}</td>
                                        <td>
@@ -45,6 +74,9 @@
                                 <li>{{ $item->nama_perlengkapan }}</li>
                             @endforeach
                         </ul>
+@if(isset($isConflict) && $isConflict)
+            <span class="text-danger" title="Konflik dengan peminjaman lain">⚠️</span>
+        @endif
                     </td>
                     <td>{{ $p->nomor_induk_pk }}</td>
                      <!--td>{{ $p->nama_peminjam_pk }}</td>-->

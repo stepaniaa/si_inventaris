@@ -12,8 +12,9 @@
 
     // Menambahkan kartu untuk Inventaris
     $cards[] = ['section' => 'Inventaris'];
-    $cards[] = ['label' => 'Jumlah Kapel Aktif', 'count' => $jumlah_ruang, 'icon' => 'fa-door-open'];
-    $cards[] = ['label' => 'Jumlah Perlengkapan Aktif', 'count' => $jumlah_perlengkapan, 'icon' => 'fa-boxes'];
+        $cards[] = ['label' => 'Kategori', 'count' => $jumlah_kategori, 'icon' => 'fa-door-open'];
+    $cards[] = ['label' => 'Kapel', 'count' => $jumlah_ruang, 'icon' => 'fa-door-open'];
+    $cards[] = ['label' => 'Perlengkapan', 'count' => $jumlah_perlengkapan, 'icon' => 'fa-boxes'];
 
     // Menambahkan kartu untuk Usulan Barang
     //$cards[] = ['section' => 'Usulan Barang'];
@@ -47,7 +48,7 @@
                         <i class="fas {{ $card['icon'] }} fa-2x"></i>
                     </div>
                     <div class="card-footer bg-light text-center">
-                        @if(!in_array($card['label'], ['KATEGORI', 'KAPEL', 'PERLENGKAPAN']))
+                        @if(!in_array($card['label'], ['Kategori', 'Kapel', 'Perlengkapan']))
                             <a href="{{ $card['link'] }}" class="text-info font-weight-bold">Lihat detail</a>
                         @endif
                     </div>

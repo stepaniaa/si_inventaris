@@ -38,7 +38,7 @@
             </div>
 
             <div class="form-group">
-                <label for="bisa_dipinjam">Bisa Dipinjam</label>
+                <label for="bisa_dipinjam">Perlu pengajuan peminjaman ? </label>
                 <select name="bisa_dipinjam" class="form-control" required>
                 <option value="ya">Ya</option>
                 <option value="tidak">Tidak</option>

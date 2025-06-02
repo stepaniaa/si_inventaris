@@ -2,6 +2,7 @@
 @section('title', 'Daftar Peminjaman Kapel')
 
 @section('content')
+@php use Carbon\Carbon; @endphp
 <div class="container mt-4">
     <h3>Daftar Peminjaman Kapel</h3>
     <br>
@@ -20,6 +21,27 @@
 
     <!-- Tabel untuk Peminjaman yang Belum Divalidasi (status pengajuan 'proses') -->
     <h5>Daftar Pengajuan Peminjaman (Belum Divalidasi)</h5>
+
+    @php
+    $conflictMap = [];
+    foreach ($belumDivalidasi as $item) {
+        $tanggal = optional($item->sesi->first())->tanggal_mulai_sesi
+            ? Carbon::parse($item->sesi->first()->tanggal_mulai_sesi)->format('Y-m-d')
+            : null;
+        $ruang = $item->ruang->id_ruang ?? null;
+        if ($tanggal && $ruang) {
+            $key = $ruang . '|' . $tanggal;
+            $conflictMap[$key] = ($conflictMap[$key] ?? 0) + 1;
+        }
+    }
+    @endphp
+
+    @if(collect($conflictMap)->filter(fn($v) => $v > 1)->isNotEmpty())
+    <div class="alert alert-warning">
+        ⚠️ <strong>Perhatian:</strong> Ada lebih dari satu pengajuan pada tanggal dan kapel yang sama. Mohon pertimbangkan urgensi sebelum validasi.
+    </div>
+    @endif
+
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead>
@@ -38,32 +60,43 @@
             </thead>
             <tbody>
                 @foreach ($belumDivalidasi as $index => $peminjaman)
-                <tr>
-                    <!-- Menggunakan firstItem() untuk penomoran yang benar -->
+                @php
+                    $tanggal = optional($peminjaman->sesi->first())->tanggal_mulai_sesi
+                        ? Carbon::parse($peminjaman->sesi->first()->tanggal_mulai_sesi)->format('Y-m-d')
+                        : null;
+                    $ruang = $peminjaman->ruang->id_ruang ?? null;
+                    $key = $ruang . '|' . $tanggal;
+                    $isConflict = isset($conflictMap[$key]) && $conflictMap[$key] > 1;
+                @endphp
+
+                <tr @if($isConflict) class="table-warning" title="⚠️ Ada pengajuan lain di kapel & tanggal yang sama!" @endif>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $peminjaman->id_peminjaman_kapel }}</td>
-                    <td>{{ $peminjaman->ruang->nama_ruang }}</td>
+                    <td>
+                        {{ $peminjaman->ruang->nama_ruang }}
+                        @if($isConflict)
+                            <span class="text-danger" title="Konflik dengan peminjaman lain">⚠️</span>
+                        @endif
+                    </td>
                     <td>{{ $peminjaman->nomor_induk }}</td>
                     <td>{{ $peminjaman->nama_kegiatan }}</td>
                     <td>{{ $peminjaman->sesi->first()->tanggal_mulai_sesi ?? '-' }}</td>
                     <td>{{ $peminjaman->sesi->first()->tanggal_selesai_sesi ?? '-' }}</td>
-                    <td> {{ $peminjaman->rutin ? 'Rutin' : 'Tidak Rutin' }}</td>
+                    <td>{{ $peminjaman->rutin ? 'Rutin' : 'Tidak Rutin' }}</td>
                     <td>{{ ucfirst($peminjaman->status_pengajuan) }}</td>
                     <td style="min-width: 280px;">
                         <div class="d-flex gap-2">
-                        <!-- Lihat Detail Button -->
-                        <button type="button"  style="margin-right: 10px;" class="btn btn-info btn-sm me-2" data-toggle="modal" data-target="#detailModal-{{ $peminjaman->id_peminjaman_kapel }}">
-                           Detail
-                        </button>
+                            <button type="button" style="margin-right: 10px;" class="btn btn-info btn-sm me-2" data-toggle="modal" data-target="#detailModal-{{ $peminjaman->id_peminjaman_kapel }}">
+                                Detail
+                            </button>
 
-                        @if ($peminjaman->status_pengajuan === 'proses')
-                        <a href="{{ url('/staff_peminjaman_kapel/form_validasi_peminjaman_kapel/'.$peminjaman->id_peminjaman_kapel) }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
-                        @else
-                        <button class="btn btn-secondary btn-sm" disabled>Sudah Divalidasi</button>
-                        @endif
-    </div>
+                            @if ($peminjaman->status_pengajuan === 'proses')
+                                <a href="{{ url('/staff_peminjaman_kapel/form_validasi_peminjaman_kapel/'.$peminjaman->id_peminjaman_kapel) }}" class="btn btn-warning btn-sm">Beri Persetujuan</a>
+                            @else
+                                <button class="btn btn-secondary btn-sm" disabled>Sudah Divalidasi</button>
+                            @endif
+                        </div>
                     </td>
-                   
                 </tr>
 
                 <!-- Modal Detail Peminjaman -->

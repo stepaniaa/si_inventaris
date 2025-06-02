@@ -10,6 +10,7 @@
          <h5 class="mb-3"><strong>Daftar Kapel</strong></h5>
         <p class="text-muted"><em><strong>Penting:</strong> Periksa jadwal peminjaman yang akan datang untuk menghindari bentrok jadwal.</em></p>
 
+
             @if (session('success'))
                 <div class="alert alert-success mt-2">{{ session('success') }}</div>
             @endif
@@ -52,6 +53,28 @@
     {{-- TABEL PEMINJAMAN YANG AKAN DATANG --}}
     <div class="card shadow-sm p-3 mb-5" style="border-radius: 10px;">
         <h5 class="mb-3 text-black"><strong>Tabel Peminjaman yang Akan Datang</strong></h5>
+        {{-- MODIFIED: Tambah form filter frontend --}}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="bulanFilter">Filter Bulan</label>
+                        <select id="bulanFilter" class="form-control">
+                            <option value="">-- Semua Bulan --</option>
+                            @foreach(range(1, 12) as $m)
+                                <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="kapelFilter">Filter Kapel</label>
+                        <select id="kapelFilter" class="form-control">
+                            <option value="">-- Semua Kapel --</option>
+                            @foreach ($kapel as $k)
+                                <option value="{{ $k->nama_ruang }}">{{ $k->nama_ruang }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                {{-- END MODIFIED --}}
         @if (count($jadwal) > 0)
         <div class="table-responsive">
             <table class="table table-striped table-bordered">
@@ -82,4 +105,33 @@
         @endif
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const bulanFilter = document.getElementById('bulanFilter');
+        const kapelFilter = document.getElementById('kapelFilter');
+
+        const filterTable = () => {
+            const selectedBulan = bulanFilter.value;
+            const selectedKapel = kapelFilter.value.toLowerCase();
+
+            const rows = document.querySelectorAll("table tbody tr");
+
+            rows.forEach(row => {
+                const tanggalText = row.children[3].textContent.trim();
+                const kapelText = row.children[2].textContent.trim().toLowerCase();
+
+                const tanggalObj = new Date(tanggalText);
+                const rowBulan = tanggalObj.getMonth() + 1;
+
+                const matchBulan = !selectedBulan || rowBulan == selectedBulan;
+                const matchKapel = !selectedKapel || kapelText.includes(selectedKapel);
+
+                row.style.display = (matchBulan && matchKapel) ? '' : 'none';
+            });
+        };
+
+        bulanFilter.addEventListener('change', filterTable);
+        kapelFilter.addEventListener('change', filterTable);
+    });
+</script>
 @endsection
