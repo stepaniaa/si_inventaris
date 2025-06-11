@@ -58,7 +58,11 @@ use Carbon\Carbon;
                       <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#modalDetailSesi{{ $sesi->id_sesi_kapel }}">Detail</button>
                 </td>
                 <td>
-                    <span class="badge badge-warning">Belum Dikembalikan</span>
+                     @if($sesi->status_pengembalian_kp === 'bermasalah')
+                            <span class="badge badge-warning">Perlu Ditinjau</span>
+                        @else
+                            <span class="badge badge-primary">Belum Dikembalikan</span>
+                        @endif
                 </td>
                 <td>
                     <a href="/staff_pengembalian_kapel/form_pengembalian_kapel/{{ $sesi->id_sesi_kapel }}" class="btn btn-primary btn-sm">Proses</a>

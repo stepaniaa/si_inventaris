@@ -72,4 +72,74 @@
     </div>
 </div>
 
+<!-- Syarat dan Ketentuan Umum Peminjaman Fasilitas -->
+<div class="card mt-5 shadow-lg rounded-lg overflow-hidden">
+    <div class="card-header text-center bg-white-500 text-white py-3">
+        <strong class="text-lg text-black">Syarat dan Ketentuan Umum Peminjaman</strong>
+    </div>
+    <div class="card-body bg-gray-50 p-4">
+        <ol class="list-decimal text-sm text-gray-700 pl-5 space-y-2">
+            <li><strong>Dilarang makan dan minum di dalam ruangan.</strong>
+                <br>Untuk menjaga kebersihan dan kenyamanan bersama, konsumsi makanan dan minuman di fasilitas ruang tidak diperbolehkan.</li>
+
+            <li><strong>Pengguna wajib menjaga kebersihan selama dan setelah pemakaian.</strong>
+                <br>Semua peminjam bertanggung jawab atas kebersihan fasilitas yang digunakan, baik itu ruang maupun perlengkapan.</li>
+
+            <li><strong>Fasilitas harus dikembalikan dalam kondisi dan posisi semula.</strong>
+                <br>Segala perlengkapan atau tata letak ruang yang diubah saat pemakaian harus dikembalikan seperti sedia kala.</li>
+
+            <li><strong>Dilarang memindahkan kabel dan instalasi tanpa izin.</strong>
+                <br>Khusus fasilitas yang melibatkan perangkat elektronik, kabel atau alat tidak boleh dipindahkan sembarangan.</li>
+
+            <li><strong>Peminjam bertanggung jawab penuh atas kerusakan dan kehilangan.</strong>
+                <br>Kerusakan atau kehilangan pada ruang maupun perlengkapan selama masa peminjaman menjadi tanggung jawab peminjam sepenuhnya.</li>
+
+            <li><strong>Wajib menyerahkan kartu identitas sebagai jaminan.</strong>
+                <br>Seluruh peminjam diwajibkan menyerahkan identitas resmi (KTP/KTM) pada saat pengambilan akses fasilitas ke pihak LPKKSK sebagai bentuk jaminan hingga peminjaman selesai.</li>
+
+            <li><strong>Penggunaan fasilitas harus tepat waktu sesuai jadwal.</strong>
+                <br>Peminjam wajib mematuhi waktu peminjaman yang telah disetujui, baik saat mulai maupun pengembalian.</li>
+
+            <li><strong>Peminjaman hanya dilakukan melalui sistem atau prosedur resmi.</strong>
+                <br>Semua permohonan dilakukan melalui sistem yang disediakan oleh LPKKSK, tidak melalui jalur informal.</li>
+
+            <li><strong>Peminjaman wajib melalui verifikasi dan persetujuan LPKKSK.</strong>
+                <br>Fasilitas hanya dapat digunakan setelah mendapatkan izin resmi dari pihak LPKKSK.</li>
+
+            <li><strong>Fasilitas hanya boleh digunakan untuk kegiatan yang sesuai pengajuan.</strong>
+                <br>Penyalahgunaan fasilitas untuk tujuan lain di luar yang disetujui tidak diperbolehkan.</li>
+
+            <li><strong>Dilarang menggunakan fasilitas untuk kegiatan yang melanggar norma atau hukum.</strong>
+                <br>Segala bentuk tindakan destruktif, merusak moral, atau melanggar hukum dilarang keras.</li>
+        </ol>
+        <p class="text-xs text-gray-500 mt-3 italic">*Syarat dan ketentuan ini berlaku untuk seluruh bentuk peminjaman fasilitas, baik berupa ruang maupun perlengkapan.</p>
+    </div>
+</div>
+
+<!-- Kontak Kami -->
+<div class="card mt-5 shadow-lg rounded-lg overflow-hidden">
+    <div class="card-body bg-gray-50 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <!-- Alamat -->
+            <div>
+                <p class="font-semibold text-base mb-1">Kontak Kami</p>
+                <p><strong>Universitas Kristen Duta Wacana</strong></p>
+                <p>Jl. dr. Wahidin Sudirohusodo no. 5–25</p>
+                <p>Yogyakarta, Indonesia – 55224</p>
+                <p>Gedung Chara lantai 2</p>
+            </div>
+            <!-- Email & Telepon -->
+            <div>
+                <p class="font-semibold text-base mb-1">Email</p>
+                <p>pusatkerohanian@ukdw.ac.id</p>
+
+                <p class="font-semibold text-base mt-4 mb-1">Telepon</p>
+                <p>0274-563929 ext 104</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 @endsection

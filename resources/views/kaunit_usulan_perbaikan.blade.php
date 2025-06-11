@@ -17,6 +17,7 @@
                     <th>Kode Perlengkapan</th>
                     <th>Tanggal Pengusulan</th>
                     <th>Alasan Perbaikan</th>
+                    <th>Estimasi Biaya</th>
                     <th>Gambar Perlengkapan</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -29,12 +30,17 @@
                         <td>{{ $usulan->perlengkapan->kode_perlengkapan }}</td>
                         <td>{{ $usulan->tanggal_usulan_perbaikan }}</td>
                         <td>{{ $usulan->alasan_perbaikan }}</td>
+                        <td>{{ $usulan->estimasi_harga_perbaikan }}</td>
                         <td>
-                @if($usulan->foto_perbaikan)
-                <img src="{{ asset('storage/foto_perbaikan/' . $usulan->foto_perbaikan) }}" alt="Foto Perbaikan" width="80">
-                 @else
-                    <span class="text-muted">Tidak ada foto</span>
-                @endif
+        
+   
+    @if($usulan->foto_perbaikan)
+        <a href="{{ asset('storage/foto_perbaikan/' . $usulan->foto_perbaikan) }}" target="_blank" style="text-decoration: underline; color: blue;">
+            Lihat Gambar
+        </a>
+    @else
+        <span class="text-muted">Tidak ada foto</span>
+    @endif
                 </td>
                         <td>{{ $usulan->status_usulan_perbaikan }}</td>
                         <td>

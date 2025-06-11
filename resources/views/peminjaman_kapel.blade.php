@@ -19,14 +19,16 @@
                 <div class="alert alert-danger mt-2">{{ session('error') }}</div>
             @endif
 
-
-
             <div class="row mb-4">
         @foreach ($kapel as $k)
         <div class="col-md-6 mb-3">
             <div class="card h-100 shadow-sm p-3" style="border-radius: 10px;">
                 <div class="d-flex align-items-center">
-                    <img src="{{ asset('images/default_kapel.jpg') }}" alt="Kapel" width="120" height="100" class="rounded me-3" style="object-fit: cover;">
+                @php
+    $gambar = $k->id_ruang == 1 ? 'kapeldw.jpeg' : 'prayerrooms.jpeg';
+@endphp
+<img src="{{ asset('images/' . $gambar) }}" alt="Kapel" width="120" height="100" class="rounded me-3" style="object-fit: cover;">
+
                     <div class="flex-grow-1">
                         <h5 class="mb-1"><strong>{{ $k->nama_ruang }}</strong></h5>
                          @if ($k->id_ruang == 1)

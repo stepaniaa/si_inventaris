@@ -662,19 +662,33 @@ public function update_status_pengembalian_pkp(Request $request, $id_sesi_pkp)
 {
     $request->validate([
         'status_pengembalian' => 'required|in:belum,sudah,bermasalah',
-        //'id_pj_pengembalian' =>  Auth::id(),
         'catatan' => 'required_if:status_pengembalian,bermasalah|string|max:255',
     ]);
 
-    $sesi = SesiPkp::findOrFail($id_sesi_pkp);
+    $sesi = SesiPkp::with('peminjaman')->findOrFail($id_sesi_pkp);
+    $statusLama = $sesi->status_pengembalian;
+    $catatanLama = $sesi->catatan;
     $sesi->status_pengembalian = $request->status_pengembalian;
-    $sesi->peminjaman->id_pj_pengembalian_pk = Auth::id();
+
+    // Simpan penanggung jawab pengembalian
+    if ($sesi->peminjaman) {
+        $peminjaman = $sesi->peminjaman;
+        $peminjaman->id_pj_pengembalian_pk = Auth::id();
+        $peminjaman->save();
+    }
 
     if ($request->status_pengembalian === 'sudah') {
         $sesi->tanggal_pengembalian_sesi = Carbon::now();
+
+        if ($statusLama === 'bermasalah' && $catatanLama) {
+            $sesi->catatan = "[MASALAH SEBELUMNYA]: {$catatanLama}\n\n[SELESAI]: Masalah telah diselesaikan pada " . Carbon::now()->format('d-m-Y H:i');
+        } else {
+            $sesi->catatan = $request->catatan; // boleh null
+        }
+    } else if ($request->status_pengembalian === 'bermasalah') {
+        $sesi->tanggal_pengembalian_sesi = null;
         $sesi->catatan = $request->catatan;
-    } else {
-        // status 'belum' atau lainnya
+    } else if ($request->status_pengembalian === 'belum') {
         $sesi->tanggal_pengembalian_sesi = null;
         $sesi->catatan = null;
     }
@@ -761,23 +775,37 @@ public function update_status_pengembalian_kapel(Request $request, $id_sesi_kape
 {
      Log::info('STATUS: ' . $request->status_pengembalian_kp);
     Log::info('FULL REQUEST: ', $request->all());
-    $request->validate([
+     $request->validate([
         'status_pengembalian_kp' => 'required|in:belum,sudah,bermasalah',
-        //'id_pj_pengembalian' =>  Auth::id(), // bisa juga pakai ->id atau ->email
         'catatan_kp' => 'required_if:status_pengembalian_kp,bermasalah|string|max:255',
     ]);
 
-    $sesi = SesiKapel::findOrFail($id_sesi_kapel);
+    $sesi = SesiKapel::with('peminjaman')->findOrFail($id_sesi_kapel);
+    $statusLama = $sesi->status_pengembalian_kp;
+    $catatanLama = $sesi->catatan_kp;
+
     $sesi->status_pengembalian_kp = $request->status_pengembalian_kp;
-    $sesi->peminjaman->id_pj_pengembalian = Auth::id();
+
+    // Simpan penanggung jawab pengembalian ke model peminjaman
+    if ($sesi->peminjaman) {
+        $sesi->peminjaman->id_pj_pengembalian = Auth::id();
+        $sesi->peminjaman->save();
+    }
 
     if ($request->status_pengembalian_kp === 'sudah') {
         $sesi->tanggal_pengembalian_sesi_kp = Carbon::now();
+
+        if ($statusLama === 'bermasalah' && $catatanLama) {
+            $sesi->catatan_kp = "[MASALAH SEBELUMNYA]: {$catatanLama}\n\n[SELESAI]: Masalah telah diselesaikan pada " . Carbon::now()->format('d-m-Y H:i');
+        } else {
+            $sesi->catatan_kp = $request->catatan_kp;
+        }
+    } elseif ($request->status_pengembalian_kp === 'bermasalah') {
+        $sesi->tanggal_pengembalian_sesi_kp = null;
         $sesi->catatan_kp = $request->catatan_kp;
-    } else {
-        // status 'belum' atau lainnya
-    $sesi->tanggal_pengembalian_sesi_kp = null;
-      $sesi->catatan_kp = null;
+    } elseif ($request->status_pengembalian_kp === 'belum') {
+        $sesi->tanggal_pengembalian_sesi_kp = null;
+        $sesi->catatan_kp = null;
     }
 
     $sesi->save();

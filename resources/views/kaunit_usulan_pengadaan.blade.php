@@ -15,6 +15,8 @@
                 <tr>
                     <th>No</th>
                     <th>Nama Perlengkapan</th>
+                    <th>Alasan</th>
+                    <th>Estimasi Harga</th>
                     <th>Jumlah</th>
                     <th>Tanggal Pengusulan</th>
                     <th>Status</th>
@@ -26,6 +28,8 @@
                     <tr>
                         <td>{{ $idx + 1}}</td>
                         <td>{{ $usulan->nama_perlengkapan_pengadaan }}</td>
+                        <td>{{ $usulan->alasan_pengadaan }}</td>
+                         <td>{{ $usulan->estimasi_harga }}</td>
                         <td>{{ $usulan->jumlah_usulan_pengadaan }}</td>
                         <td>{{ $usulan->tanggal_usulan_pengadaan }}</td>
                         <td>{{ $usulan->status_usulan_pengadaan }}</td>

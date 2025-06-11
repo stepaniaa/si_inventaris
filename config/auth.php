@@ -34,19 +34,17 @@ return [
     | Supported: "session", "token"
     |
     */
-
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-
-        'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
-            'hash' => false,
-        ],
+'guards' => [
+    'web' => [ // untuk USER: staf / admin
+        'driver' => 'session',
+        'provider' => 'users',
     ],
+
+    'peminjam' => [ // untuk peminjam kapel
+        'driver' => 'session',
+        'provider' => 'peminjam',
+    ],
+],
 
     /*
     |--------------------------------------------------------------------------
@@ -70,6 +68,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\User::class,
         ],
+        'peminjam' => [
+    'driver' => 'eloquent',
+    'model' => App\Peminjam::class,
+],
 
         // 'users' => [
         //     'driver' => 'database',

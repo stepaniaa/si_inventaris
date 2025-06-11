@@ -21,10 +21,10 @@ use Carbon\Carbon;
   </div>
            <div class="form-group">
             <label>Status Pengembalian:</label>
-            <select name="status_pengembalian_kp" onchange="this.form.submit()">
+            <select name="status_pengembalian_kp" class="form-control">
                 <option value="belum" {{ $peminjaman->status_pengembalian_kp == 'belum' ? 'selected' : '' }}>Belum</option>
-                <option value="sudah" {{ $peminjaman->status_pengembalian_kp == 'sudah' ? 'selected' : '' }}>Sudah</option>
-               <!-- <option value="bermasalah" {{ $peminjaman->status_pengembalian_kp == 'bermasalah' ? 'selected' : '' }}>Bermasalah</option>-->
+                 <option value="bermasalah" {{ $peminjaman->status_pengembalian_kp == 'bermasalah' ? 'selected' : '' }}>Bermasalah</option>
+                <option value="sudah" {{ $peminjaman->status_pengembalian_kp == 'sudah' ? 'selected' : '' }}>Selesai</option>
             </select>
 </div>
             @if($peminjaman->status_pengembalian_kp == 'sudah')
@@ -32,9 +32,9 @@ use Carbon\Carbon;
             @elseif($peminjaman->status_pengembalian_kp == 'bermasalah')
                 <small class="text-danger">Perlu tindak lanjut</small>
             @endif
+            <button type="submit" class="btn btn-primary mt-3">Simpan Perubahan</button>
+            <a href="{{ url()->previous() }}" class="btn btn-secondary mt-3">Kembali</a>
         </form>
     </div>
-
-    <a href="{{ url()->previous() }}" class="btn btn-secondary mt-3">Kembali</a>
 </div>
 @endsection

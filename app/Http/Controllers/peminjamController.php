@@ -9,6 +9,7 @@ use App\PeminjamanPkp;
 use App\SesiPkp;
 use App\PeminjamanKapel;
 use App\SesiKapel;
+use App\Peminjam;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log; // Import kelas Log
@@ -62,30 +63,33 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
     public function peminjaman_kapel_formadd($id_ruang)
     {
         $kapel = Ruang::findOrFail($id_ruang);
+        $user = Auth::guard('peminjam')->user();
 
     // Cegah akses jika ruang tidak bisa dipinjam
     if ($kapel->bisa_dipinjam !== 'ya') {
         return redirect()->back()->with('error', 'Ruang ini tidak tersedia untuk dipinjam.');
     }
 
-    return view('peminjaman_kapel_formadd', compact('kapel'));
+    return view('peminjaman_kapel_formadd', compact('kapel', 'user'));
+
     }
 
     public function save_peminjaman_kapel(Request $request)
     {
         \Log::info('Mulai proses penyimpanan peminjaman ruang dengan data: ' . json_encode($request->all()));
 
-        $isKapelAtas = $request->id_ruang == 1;
+        $isKapelAtas = $request->id_ruang == 1; 
+        $user = Auth::guard('peminjam')->user();
 
         $emailRules = ['required', 'email'];
         
         $validator = Validator::make($request->all(), [
-            'nomor_induk' => $isKapelAtas ? 'required|string|max:50' : 'nullable|string|max:50',
-            'nama_peminjam' => 'required|string|max:100',
+            //'nomor_induk' => $isKapelAtas ? 'required|string|max:50' : 'nullable|string|max:50',
+            //'nama_peminjam' => 'required|string|max:100',
             'kontak' => 'required|string|max:20',
-            'asal_unit' => 'nullable|string|max:100',
-            'peran' => 'nullable|string|max:50',
-             'email' => $emailRules,
+           // 'asal_unit' => 'nullable|string|max:100',
+           // 'peran' => 'nullable|string|max:50',
+             //'email' => $emailRules,
             'nama_kegiatan' => 'required|string|max:150',
             'keterangan_kegiatan' => 'nullable|string',
             'id_ruang' => 'required|exists:ruang,id_ruang',
@@ -178,12 +182,13 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
 
 
             $peminjaman = PeminjamanKapel::create([
-                'nomor_induk' => $request->nomor_induk,
-                'nama_peminjam' => $request->nama_peminjam,
+                'nomor_induk' => $user->nim,
+                'nama_peminjam' => $user->name,
                 'kontak' => $request->kontak,
-                'asal_unit' => $request->asal_unit,
-                'peran' => $request->peran,
-                'email' => $request->email,
+                //'asal_unit' => $request->asal_unit,
+                'asal_unit' => $user->asal_unit,
+                'peran' => $user->peran,
+                'email' => $user->email,
                 'nama_kegiatan' => $request->nama_kegiatan,
                 'keterangan_kegiatan' => $request->keterangan_kegiatan,
                 'jumlah_kursi' => $request->jumlah_kursi,
@@ -285,6 +290,7 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
 
     public function peminjaman_perlengkapan_formadd()
     {
+         $user = Auth::guard('peminjam')->user();
         $ids = session('id_perlengkapan_dipilih', []);
         $perlengkapan = Perlengkapan::whereIn('id_perlengkapan', $ids)
          ->where('bisa_dipinjam_pk', 'ya')
@@ -293,18 +299,19 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
         if ($perlengkapan->isEmpty()) {
             return redirect('/peminjaman_perlengkapan')->withErrors('Anda belum memilih perlengkapan untuk dipinjam.');
         }
-        return view('peminjaman_perlengkapan_formadd', compact('perlengkapan'));
+        return view('peminjaman_perlengkapan_formadd', compact('perlengkapan', 'user'));
     } 
 
     public function save_peminjaman_perlengkapan(Request $request)
 {
     \Log::info('Mulai proses penyimpanan peminjaman dengan data: ' . json_encode($request->all()));
+    $peminjam = Auth::guard('peminjam')->user();
 
     $validator = Validator::make($request->all(), [
-        'nomor_induk_pk' => 'required|string|max:50',
-        'nama_peminjam_pk' => 'required|string|max:100',
+        //'nomor_induk_pk' => 'required|string|max:50',
+        //'nama_peminjam_pk' => 'required|string|max:100',
         'kontak_pk' => 'required|string|max:20',
-        'email_pk' => 'required|email|regex:/ukdw\\.ac\\.id$/i',
+        //'email_pk' => 'required|email|regex:/ukdw\\.ac\\.id$/i',
         'nama_kegiatan_pk' => 'required|string|max:100',
         'keterangan_kegiatan_pk' => 'nullable|string',
         'lokasi_kegiatan_pk' => 'required|string|max:255', // DITAMBAHKAN
@@ -319,7 +326,7 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
         'tanggal_sesi_awal.mulai' => 'required|date',
         'tanggal_sesi_awal.selesai' => 'required|date|after_or_equal:tanggal_sesi_awal.mulai',
     ], [
-        'email_pk.regex' => 'Email harus menggunakan domain ukdw.ac.id.', // DITAMBAHKAN
+        //'email_pk.regex' => 'Email harus menggunakan domain ukdw.ac.id.', // DITAMBAHKAN
         'lokasi_kegiatan_pk.required' => 'Lokasi kegiatan wajib diisi.' // DITAMBAHKAN
     ]);
 
@@ -352,10 +359,12 @@ usort($jadwal, fn ($a, $b) => strtotime($a['tanggal_mulai']) - strtotime($b['tan
 
         // Buat peminjaman terlebih dahulu
         $peminjaman = PeminjamanPkp::create([
-            'nomor_induk_pk' => $request->nomor_induk_pk,
-            'nama_peminjam_pk' => $request->nama_peminjam_pk,
-            'kontak_pk' => $request->kontak_pk,
-            'email_pk' => $request->email_pk,
+            'nomor_induk_pk' => $peminjam->nim ?? 'non-ukdw',
+            'nama_peminjam_pk' => $peminjam->name,
+            'email_pk' => $peminjam->email,
+            'asal_unit' => $peminjam->asal_unit,
+'peran' => $peminjam->peran,
+             'kontak_pk' => $request->kontak_pk,
             'nama_kegiatan_pk' => $request->nama_kegiatan_pk,
             'keterangan_kegiatan_pk' => $request->keterangan_kegiatan_pk,
             'lokasi_kegiatan_pk' => $request->lokasi_kegiatan_pk,

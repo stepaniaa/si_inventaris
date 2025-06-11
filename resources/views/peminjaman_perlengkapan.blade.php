@@ -30,6 +30,7 @@
                                     <th>No</th>
                                     <th>Kode</th>
                                     <th>Nama Perlengkapan</th>
+                                    <th>Gambar</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -39,6 +40,14 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->kode_perlengkapan }}</td>
                                     <td class="text-left">{{ $item->nama_perlengkapan }}</td>
+                                
+    <td>
+                  @if($item->foto_perlengkapan)
+                  <img src="{{ asset('storage/' . $item->foto_perlengkapan) }}" alt="Foto Perlengkapan" width="80">
+                  @else
+                  <span class="text-muted">Tidak ada foto</span>
+                  @endif
+</td>
                                     <td>
                                         <button class="btn btn-success btn-sm py-0 px-1" onclick="tambahKeKeranjang('{{ $item->id_perlengkapan }}', '{{ $item->nama_perlengkapan }}')">+</button>
                                     </td>
@@ -91,7 +100,7 @@
                 <table class="table table-bordered table-hover" id="peminjamanTable">
                     <thead>
                         <tr>
-                            <th>ID Peminjaman</th>
+                           <!-- <th>ID Peminjaman</th>-->
                             <th>Nama Kegiatan</th>
                             <th>Perlengkapan</th>
                             <th>Tanggal Mulai</th>
@@ -102,7 +111,7 @@
                         @foreach($peminjamansAkanDatang as $p)
                             @foreach($p->sesi as $sesi)
                             <tr>
-                                <td>{{ $p->id_peminjaman_pkp }}</td>
+                               <!-- <td>{{ $p->id_peminjaman_pkp }}</td>-->
                                 <td>{{ $p->nama_kegiatan_pk }}</td>
                                 <td>
                                     @foreach($p->perlengkapan as $item)

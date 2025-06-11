@@ -29,6 +29,7 @@
                 <th scope="col">Username </th>
                 <th scope="col">Nama Lengkap </th>
                 <th scope="col">Role </th>
+                <th scope="col">Bagian </th>
                 <th scope="col">Email </th>
                 <th scope="col">Aksi </th>
               </tr>
@@ -40,6 +41,7 @@
                         <td>{{$u->username}}</td>
                         <td>{{$u->name}}</td>
                         <td>{{$u->role }}</td>
+                        <td>{{$u->bagian}}</td>
                         <td>{{$u->email}}</td>
                         <td>
                           <a href="/kaunit_daftar_user/delete_user/{{$u->id}}" class="btn btn-danger" onclick="return confirm('Apakah ada yakin ingin menghapus data ini ?')">

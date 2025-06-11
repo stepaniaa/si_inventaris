@@ -41,52 +41,33 @@
     </label>
     <input type="text" name="nomor_induk" class="form-control"
            placeholder="Contoh: 722020123 (NIM) atau 19780101 (NIP)"
-           {{ $kapel->id_ruang == 1 ? 'required' : '' }}>
+           value="{{ $user->nim }}" {{ $kapel->id_ruang == 1 ? 'required' : '' }} readonly>
 </div>
 
         <div class="form-group">
-            <label>Nama Lengkap Anda<span class="text-danger">*</span></label>
-            <input type="text" name="nama_peminjam" class="form-control" required>
-        </div>
-
-        <div class="form-group" id="asalUnitSection">
-             <label for="asal_unit">Asal Instansi / Fakultas / Lembaga Anda<span class="text-danger">*</span></label>
-                <select name="asal_unit" id="asal_unit" class="form-control">
-                <option value="" selected disabled>-- Pilih Opsi --</option>
-                <option value="eksternal">Peminjam Eksternal (Non-UKDW)</option>
-                <option value="fti">Fakultas Teknologi Informasi</option>
-                <option value="fad">Fakultas Arsitektur dan Desain</option>
-                <option value="fb">Fakultas Bisnis</option>
-                <option value="fbio">Fakultas Bioteknologi</option>
-                <option value="ft">Fakultas Teologi</option>
-                <option value="fkh">Fakultas Kependidikan & Humaniora</option>
-                <option value="fk">Fakultas Kedokteran</option>
-
-            </select>
-        </div>
-
-        <div class="form-group" id="peranSection">
-             <label for="peran">Status Anda sebagai Peminjam <span class="text-danger">*</span></label>
-                <select name="peran" id="peran" class="form-control">
-                <option value="" selected disabled>-- Pilih Opsi --</option>
-                <option value="eksternal">Pihak Eksternal (Non-UKDW)</option>
-                <option value="dosen">Dosen UKDW</option>
-                <option value="pekerja">Staf / Pegawai UKDW</option>
-                <option value="mahasiswa">Mahasiswa UKDW</option>
-            </select>
-        </div>
+    <label>Nama Lengkap Anda<span class="text-danger">*</span></label>
+    <input type="text" name="nama_peminjam" class="form-control" required value="{{ $user->name }}" readonly>
+</div>
 
         <div class="form-group">
-            <label>Kontak<span class="text-danger">*</span></label>
-            <input type="text" name="kontak" class="form-control" required>
-        </div>
+    <label for="peran">Status Anda sebagai Peminjam<span class="text-danger">*</span></label>
+    <input type="text" class="form-control" name="peran" value="{{ $user->peran }}" readonly>
+</div>
+
+        <div class="form-group">
+    <label for="asal_unit">Asal Instansi / Fakultas / Lembaga Anda<span class="text-danger">*</span></label>
+    <input type="text" class="form-control" name="asal_unit" value="{{ $user->asal_unit }}" readonly>
+</div>
 
        <div class="form-group">
     <label>Email<span class="text-danger">*</span></label>
-    <input type="text" name="email" class="form-control" required
-           pattern="[a-zA-Z0-9._%+-]+@ukdw\.ac\.id"
-           title="Email harus menggunakan domain @ukdw.ac.id">
+    <input type="email" name="email" class="form-control" required value="{{ $user->email }}" readonly>
 </div>
+
+<div class="form-group">
+            <label>Kontak<span class="text-danger">*</span></label>
+            <input type="text" name="kontak" class="form-control" required>
+        </div>
 
         <div class="form-group">
             <label>Nama Kegiatan<span class="text-danger">*</span></label>
@@ -160,8 +141,8 @@
         </select>
     </div>
 @endif
-<br>
-                <div class="form-group" id="buktiUKDWSection" style="display: none;">
+
+              <div class="form-group" id="buktiUKDWSection" style="display: none;">
         <label for="bukti_ukdw">Upload Bukti Sebagai Mahasiswa/Dosen/Staff UKDW (KTM/NIP)<span class="text-danger">*</span></label>
         <input type="file" name="bukti_ukdw" id="bukti_ukdw" class="form-control" accept="image/*,application/pdf">
         </div>

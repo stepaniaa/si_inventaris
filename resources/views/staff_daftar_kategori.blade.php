@@ -38,7 +38,7 @@
                   <td>{{$k->id_kategori}}</td>
                   <td>{{$k->nama_kategori}}</td>
                   <td>
-                    <a href="/staff_daftar_kategori/s_kategori_formedit/{{$k->id_kategori}}" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
+                    <a href="/staff_daftar_kategori/s_kategori_formedit/{{$k->id_kategori}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
 
                     
                     <a href="/staff_daftar_kategori/delete_kategori/{{$k->id_kategori}}" class="btn btn-danger" onclick="return confirm('Apakah ada yakin ingin menghapus data ini ?')">

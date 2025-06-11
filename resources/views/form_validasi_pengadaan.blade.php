@@ -28,6 +28,12 @@
                 <textarea class="form-control" id="alasan" rows="3" readonly>{{ $pengadaan->alasan_pengadaan }}</textarea>
             </div>
 
+            
+            <div class="mb-3">
+                <label for="estimasi_harga" class="form-label">Estimasi harga</label>
+                <textarea class="form-control" id="estimasi_harga" rows="3" readonly>{{ $pengadaan->estimasi_harga }}</textarea>
+            </div>
+
             <div class="mb-3">
                 <label for="status_usulan_pengadaan" class="form-label">Status Persetujuan</label>
                 <select class="form-control" id="status_usulan_pengadaan" name="status_usulan_pengadaan">

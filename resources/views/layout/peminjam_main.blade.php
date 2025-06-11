@@ -75,6 +75,31 @@
                         <img src="https://lpkksk.ukdw.ac.id/wp-content/uploads/2023/04/cropped-Artboard-2.png"  alt="Logo" class="rounded-circle">
                         <span class="text-white ml-2">SI Inventaris LPKKSK UKDW</span>
                     </div>
+                    <div class="col-md-4">
+                        <div class="dropdown float-right">
+                            <button class="btn btn-dusty dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="bi bi-person-fill"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="#">
+                                    <div class="media">
+                                        <div class="media-body">
+                                           <h5 class="mt-2">{{ Auth::guard('peminjam')->user()->name ?? '' }}</h5>
+                                            <small>
+                                                <i class="bi bi-emoji-smile-fill"></i> Selamat Datang
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                                <a class="dropdown-item" href="{{ route('logout_peminjam') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="bi bi-box-arrow-left"></i> Log Out
+                                </a>
+                                <form id="logout-form" action="{{ route('logout_peminjam') }}" method="POST" style="display: none;">
+                                    @csrf
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

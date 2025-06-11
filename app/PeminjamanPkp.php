@@ -38,6 +38,8 @@ class PeminjamanPkp extends Model
          'catatan_persetujuan_kapel',
          'tanggal_tervalidasi',
          'lokasi_kegiatan_pk',
+          'asal_unit',
+        'peran',
     ];
 
     public function perlengkapan(): BelongsToMany

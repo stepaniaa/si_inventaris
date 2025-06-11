@@ -9,7 +9,7 @@
 
     // Menambahkan kartu untuk Inventaris
     $cards[] = ['section' => 'Inventaris'];
-    $cards[] = ['label' => 'Jumlah Kapel Aktif', 'count' => $jumlah_ruang, 'icon' => 'fa-door-open'];
+    $cards[] = ['label' => 'Jumlah Ruang Aktif', 'count' => $jumlah_ruang, 'icon' => 'fa-door-open'];
     $cards[] = ['label' => 'Jumlah Perlengkapan Aktif', 'count' => $jumlah_perlengkapan, 'icon' => 'fa-boxes'];
     $cards[] = ['label' => 'Jumlah Staf Aktif', 'count' => $jumlah_user, 'icon' => 'fa-users'];
 

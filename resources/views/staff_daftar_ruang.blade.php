@@ -21,7 +21,7 @@
 
         </div>
         <div class="card-body">
-        
+        <div class="table-responsive">
            <table class="table table-bordered">
             <thead>
               <tr>
@@ -49,7 +49,7 @@
                   <td>{{$r->bisa_dipinjam}}</td>
 
                   <td>
-                    <a href="/staff_daftar_ruang/s_ruang_formedit/{{$r->id_ruang}}" class="btn btn-success"><i class="bi bi-pencil-square"></i></a>
+                    <a href="/staff_daftar_ruang/s_ruang_formedit/{{$r->id_ruang}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
 
                     
                     <a href="/staff_daftar_ruang/delete_ruang/{{$r->id_ruang}}" class="btn btn-danger" onclick="return confirm('Apakah ada yakin ingin menghapus data ini ?')">
@@ -59,6 +59,7 @@
               @endforeach
             </tbody>
           </table>
+           </div>
         </div>
     </div>
 @endsection

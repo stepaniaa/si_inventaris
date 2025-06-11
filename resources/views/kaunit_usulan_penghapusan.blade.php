@@ -30,11 +30,13 @@
                         <td>{{ $usulan->tanggal_usulan_penghapusan }}</td>
                         <td>{{ $usulan->alasan_penghapusan }}</td>
                         <td>
-                @if($usulan->foto_penghapusan)
-                <img src="{{ asset('storage/foto_penghapusan/' . $usulan->foto_penghapusan) }}" alt="Foto Penghapusan" width="80">
-                 @else
-                    <span class="text-muted">Tidak ada foto</span>
-                @endif
+                 @if($usulan->foto_penghapusan)
+        <a href="{{ asset('storage/foto_penghapusan/' . $usulan->foto_penghapusan) }}" target="_blank" style="text-decoration: underline; color: blue;">
+            Lihat Gambar
+        </a>
+    @else
+        <span class="text-muted">Tidak ada foto</span>
+    @endif
                 </td>
                         <td>{{ $usulan->status_usulan_penghapusan }}</td>
                         <td>

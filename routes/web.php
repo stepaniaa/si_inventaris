@@ -4,6 +4,7 @@ use App\Http\Controllers\peminjamController;
 use App\Http\Controllers\staffController;
 use App\Http\Controllers\kaunitController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PeminjamAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,20 @@ use App\Http\Controllers\AuthController;
 */
 //SECTION - PEMINJAM ------------------------------------------------------------------------------
 // Rute untuk peminjam (akses tanpa login)
+
+//registrasi peminjam
+Route::get('peminjam_', 'PeminjamAuthController@showRegister');
+Route::post('peminjam/register', 'PeminjamAuthController@register');
+
+Route::get('peminjam/login', 'PeminjamAuthController@showLogin');
+Route::post('peminjam/login', 'PeminjamAuthController@login');
+
+Route::get('login_peminjam', 'PeminjamAuthController@showLoginForm')->name('login_peminjam');
+Route::post('login_peminjam', 'PeminjamAuthController@login_peminjam');
+Route::post('logout_peminjam', 'PeminjamAuthController@logout_peminjam')->name('logout_peminjam');
+Route::get('register_peminjam', 'PeminjamAuthController@showRegistrationForm')->name('register_peminjam');
+Route::post('register_peminjam', 'PeminjamAuthController@register_peminjam');
+
 
 Route::get('peminjam_beranda', 'peminjamController@peminjam_beranda');
 Route::get('/', 'peminjamController@peminjam_beranda');
@@ -106,7 +121,7 @@ Route::group(['middleware' => ['auth', 'role:staff|kaunit']], function () {
     Route::get('staff_usulan_penghapusan', 'staffController@staff_usulan_penghapusan');
     Route::get('/staff_usulan_penghapusan/staff_penghapusan_formadd', 'staffController@staff_penghapusan_formadd');
     Route::post('/staff_usulan_penghapusan/save_penghapusan', 'staffController@save_penghapusan');
-    Route::get('/staff_usulan_penghapusan/staff_penghapusan_formedit/{id_usulan_penghapusan}', 'staffController@staff_pengadaanpenghapusan_formedit');
+    Route::get('/staff_usulan_penghapusan/staff_penghapusan_formedit/{id_usulan_penghapusan}', 'staffController@staff_penghapusan_formedit');
     Route::put('/staff_usulan_penghapusan/update_penghapusan/{id_usulan_penghapusan}', 'staffController@update_penghapusan');
     Route::get('/staff_usulan_penghapusan/delete_penghapusan/{id_usulan_penghapusan}', 'staffController@delete_penghapusan');
       });

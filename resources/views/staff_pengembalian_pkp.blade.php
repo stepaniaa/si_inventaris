@@ -64,7 +64,11 @@ use Carbon\Carbon;
                 <td>{{ $sesi->status_sesi }}</td>
                 <td><p>-</p></td>
                 <td>
-                    <span class="badge badge-warning">Belum Dikembalikan</span>
+                    @if($sesi->status_pengembalian == 'belum')
+                        <span class="badge badge-primary">Belum Dikembalikan</span>
+                    @elseif($sesi->status_pengembalian == 'bermasalah')
+                        <span class="badge badge-warning">Perlu Ditinjau</span>
+                    @endif
                 </td>
                 <!--<td>
                     {{ $sesi->tanggal_pengembalian_sesi ? Carbon::parse($sesi->tanggal_pengembalian_sesi)->format('d-M-Y H:i') : '-' }}
